@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - Universitas Pelita Bangsa</title>
+    <link rel="shortcut icon" href="logoupb.png" type="image/x-icon">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Navbar Tabs --- */
+        /* --- Dashboard Layout --- */
+        body {
+            background-color: #f0f4f8;
+            /* Soft Gray Blue Background */
+        }
+
+        .profile-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Responsive Grid */
+        @media (max-width: 900px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- Cards --- */
+        .profile-card,
+        .status-card,
+        .voucher-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+        }
+
+        .profile-card {
+            padding: 0;
+            text-align: center;
+            position: sticky;
+            top: calc(var(--header-height) + 2rem);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--color-primary), #4F46E5);
+            padding: 3rem 2rem 6rem;
+            /* Increased bottom padding */
+            color: white;
+            /* clip-path removed for cleaner look */
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+
+        .avatar-img {
+            border: 4px solid white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            background: white;
+            /* Ensure transparency doesn't show background */
+        }
+
+        .profile-body {
+            padding-top: 6rem;
+            padding-bottom: 3rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 1rem;
+            }
+
+            .profile-header {
+                padding-bottom: 4rem;
+                /* Reduce header height on mobile */
+            }
+
+            .profile-body {
+                padding-top: 4rem;
+                /* Reduce spacing on mobile */
+                padding-bottom: 2rem;
+            }
+
+            .nav-tabs-wrapper {
+                margin: 0 -1rem;
+                /* Full width scroll */
+                padding: 0.5rem 1rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 0;
+                justify-content: flex-start;
+                background: white;
+                border-top: 1px solid #e2e8f0;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .navbar-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* --- Navbar Tabs (Segmented Control) --- */
+        .nav-tabs-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            background: #f1f5f9;
+            padding: 0.25rem;
+            border-radius: 99px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .nav-tabs-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 99px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--color-primary);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-tab.active {
+            background: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab.active::after {
+            display: none;
+        }
+
+        /* Remove old underlines */
+
+        .navbar-container {
+            justify-content: flex-start;
+            gap: 2rem;
+        }
+
+        /* --- Status Cards --- */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid #f1f5f9;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            border-left: none;
+            /* Reset old style */
+        }
+
+        .info-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- Voucher Ticket Style --- */
+        .voucher-ticket {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px constant #e2e8f0;
+            /* Fallback */
+            border: 1px solid #e2e8f0;
+        }
+
+        .ticket-left {
+            padding: 2rem;
+            flex: 1;
+            border-right: 2px dashed #cbd5e1;
+            position: relative;
+        }
+
+        /* Perforation Circles */
+        .ticket-left::before,
+        .ticket-left::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            width: 20px;
+            height: 20px;
+            background: #f0f4f8;
+            /* Match body bg */
+            border-radius: 50%;
+        }
+
+        .ticket-left::before {
+            top: -10px;
+        }
+
+        .ticket-left::after {
+            bottom: -10px;
+        }
+
+        .ticket-right {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+            min-width: 150px;
+        }
+
+        .ticket-code {
+            font-family: monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            letter-spacing: 2px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-tabs-wrapper {
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                width: 100%;
+                background: white;
+                padding: 10px 20px;
+                border: none;
+                border-bottom: 1px solid var(--border);
+                border-radius: 0;
+                gap: 0.5rem;
+                justify-content: flex-start;
+                z-index: 999;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            }
+
+            .nav-tab {
+                white-space: nowrap;
+            }
+
+            .auth-page {
+                padding-top: calc(var(--header-height) + 4rem) !important;
+            }
+
+            .profile-card {
+                position: static;
+            }
+        }
+
+        /* Content Transition */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Placeholder Content Styles */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--secondary);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="index.html" class="logo">
+                <img src="logoupb.png" alt="Logo UPB" class="logo-img">
+                <div class="logo-text">
+                    <span class="logo-title">Universitas <span class="text-primary">Pelita Bangsa</span></span>
+                    <span class="logo-subtitle">Bekasi</span>
+                </div>
+            </a>
+
+            <!-- Navbar Tabs -->
+            <div class="nav-tabs-wrapper">
+                <button class="nav-tab active" onclick="switchTab('profil')">Profil</button>
+                <button class="nav-tab" onclick="switchTab('histori')">Pembayaran</button>
+                <button class="nav-tab" onclick="switchTab('matkul')">Akademik</button>
+                <button class="nav-tab" onclick="switchTab('voucher')">Voucher</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="auth-page" style="padding-top: calc(var(--header-height) + 2rem);">
+        <div class="profile-container">
+            <!-- Sidebar (Left Column) -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <h3 style="color: rgba(255,255,255,0.9); font-weight: 500; font-size: 1.1rem; margin-bottom: 0;">
+                        Selamat Datang!</h3>
+                </div>
+
+                <div class="avatar-wrapper"
+                    style="width: 100%; display: flex; justify-content: center; margin-top: -50px; position: relative; z-index: 2;">
+                    <div style="position: relative; width: 100px; height: 100px;">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" id="user-avatar"
+                            class="avatar-img" alt="Profile"
+                            style="width: 100px; height: 100px; border-radius: 50%; cursor: pointer;"
+                            onclick="openEditProfileModal()">
+                        <button class="btn-edit-avatar" onclick="openEditProfileModal()"
+                            style="position: absolute; bottom: 0; right: 0; background: var(--color-primary); border: 2px solid white; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            <i data-feather="camera" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-body">
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <h2 id="user-name" class="user-name"
+                            style="color: #1e293b; font-size: 1.5rem; font-weight: 700; margin-bottom: 0; display: block;">
+                            Memuat...</h2>
+                        <button onclick="openEditProfileModal()"
+                            style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+                            <i data-feather="edit-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                    <p id="user-email" class="user-email" style="color: #64748b;">...</p>
+
+                    <button id="logout-btn" class="btn btn-outline logout-btn" style="margin-top: 2rem; width: 100%;">
+                        <i data-feather="log-out" style="vertical-align: middle; margin-right: 8px;"></i> Keluar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content (Right Column) -->
+            <div class="profile-main-content">
+
+                <!-- Tab Profil (Status & General Info) -->
+                <div id="tab-profil" class="tab-content active">
+                    <div id="registration-status" class="status-grid">
+                        <!-- Populated by JS -->
+                        <div class="info-card">
+                            <span class="info-label">Status Pendaftaran</span>
+                            <div class="info-value">Sedang Memeriksa...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-histori" class="tab-content">
+                    <div class="empty-state">
+                        <i data-feather="dollar-sign"
+                            style="width: 48px; height: 48px; margin-bottom: 1rem; color: var(--color-primary);"></i>
+                        <p>Belum ada riwayat pembayaran.</p>
+                    </div>
+                </div>
+
+                <div id="tab-matkul" class="tab-content">
+                    <div class="empty-state">
+                        <i data-feather="book-open"
+                            style="width: 48px; height: 48px; margin-bottom: 1rem; color: var(--color-primary);"></i>
+                        <p>Data Mata Kuliah belum tersedia untuk semester ini.</p>
+                    </div>
+                </div>
+
+                <div id="tab-voucher" class="tab-content">
+                    <div id="voucher-tab-content">
+                        <!-- Populated by JS -->
+                        <div class="empty-state">
+                            <i data-feather="tag"
+                                style="width: 48px; height: 48px; margin-bottom: 1rem; color: var(--color-primary);"></i>
+                            <p>Cek info voucher di sini.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div
+            style="background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--color-primary); text-align: center;">Edit
+                Profil</h3>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">Nama
+                    Lengkap</label>
+                <input type="text" id="edit-name-input"
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">Foto Profil
+                    (Link/URL)</label>
+                <input type="text" id="edit-avatar-input" placeholder="https://..."
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Biarkan kosong
+                    untuk menggunakan inisial.</small>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button onclick="closeEditProfileModal()"
+                    style="padding: 0.75rem 1.5rem; background: #f1f5f9; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: #64748b;">Batal</button>
+                <button onclick="saveProfileChanges()"
+                    style="padding: 0.75rem 1.5rem; background: var(--color-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        feather.replace();
+
+        function openEditProfileModal() {
+            const currentName = document.getElementById('user-name').innerText;
+            document.getElementById('edit-name-input').value = currentName === 'Memuat...' ? '' : currentName;
+
+            const currentAvatar = document.getElementById('user-avatar').src;
+            if (!currentAvatar.includes('ui-avatars.com')) {
+                document.getElementById('edit-avatar-input').value = currentAvatar;
+            } else {
+                document.getElementById('edit-avatar-input').value = '';
+            }
+
+            document.getElementById('edit-profile-modal').style.display = 'flex';
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('edit-profile-modal').style.display = 'none';
+        }
+
+        async function saveProfileChanges() {
+            const newName = document.getElementById('edit-name-input').value;
+            const newAvatar = document.getElementById('edit-avatar-input').value;
+            const userEmail = document.getElementById('user-email').innerText;
+
+            if (!newName) return showToast('Nama tidak boleh kosong', 'error');
+
+            try {
+                // Prepare Update Object
+                const updateData = { name: newName };
+                // Optimization: In real scenario, we need an 'avatar_url' column in 'leads' table.
+                // We will attempt to send it. If DB ignores it (no column), fine.
+                // If it errors, we might need to handle it.
+                // For now, let's include it to support valid implementations.
+                if (newAvatar) updateData.avatar_url = newAvatar;
+
+                const { error } = await _db
+                    .from('leads')
+                    .update(updateData)
+                    .eq('email', userEmail);
+
+                if (error) {
+                    console.error('Update Error:', error);
+                    // Fallback: If error is due to missing column, try updating ONLY name
+                    if (error.code === '42703') { // Undefined column
+                        console.warn('Retrying update with Name only...');
+                        await _db.from('leads').update({ name: newName }).eq('email', userEmail);
+                    } else {
+                        throw error;
+                    }
+                }
+
+                // Update UI Success
+                document.getElementById('user-name').innerText = newName;
+
+                const avatarImg = document.getElementById('user-avatar');
+                if (newAvatar) {
+                    avatarImg.src = newAvatar;
+                } else {
+                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`;
+                }
+
+                showToast('Profil berhasil diperbarui!', 'success');
+                closeEditProfileModal();
+
+            } catch (e) {
+                console.error(e);
+                showToast('Gagal menyimpan. Cek koneksi.', 'error');
+            }
+        }
+
+        // Supabase Config
+        const supabaseUrl = 'https://oypmvarhedxcwrclzpup.supabase.co';
+        const supabaseKey = 'sb_publishable_goV8IJgbjqbFDH30A36X2A_PMAS_6Ao';
+        const _db = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const avatarImg = document.getElementById('user-avatar');
+        const nameEl = document.getElementById('user-name');
+        const emailEl = document.getElementById('user-email');
+        const statusContainer = document.getElementById('registration-status');
+
+        async function checkSession() {
+            const { data: { session } } = await _db.auth.getSession();
+
+            if (!session) {
+                // Not logged in -> Redirect to login/home
+                window.location.href = 'index.html#hero-signup-form';
+                return;
+            }
+
+            const user = session.user;
+            const meta = user.user_metadata;
+
+            // Display Google User Info
+            if (meta.full_name) nameEl.innerText = meta.full_name;
+            else nameEl.innerText = user.email.split('@')[0];
+
+            emailEl.innerText = user.email;
+
+            if (meta.avatar_url) avatarImg.src = meta.avatar_url;
+            else avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameEl.innerText)}&background=random`;
+
+            // --- MERGE LOGIC: Check for Pending Lead Phone ---
+            const pendingPhone = localStorage.getItem('pending_lead_phone');
+            if (pendingPhone) {
+                console.log('Merging Email to Lead:', pendingPhone);
+                try {
+                    // Update email where phone matches and email is NULL
+                    const { error: updateError } = await _db
+                        .from('leads')
+                        .update({ email: user.email })
+                        .eq('phone', pendingPhone)
+                        .is('email', null); // Only update if empty to be safe, or overwrite? User said "merge". Safer to overwrite or ensure.
+
+                    if (!updateError) {
+                        console.log('Merge Success');
+                        localStorage.removeItem('pending_lead_phone');
+                    } else {
+                        console.error('Merge Error:', updateError);
+                    }
+                } catch (err) {
+                    console.error('Merge Logic Error:', err);
+                }
+            }
+
+            // Fetch Registration Data (Leads)
+            fetchLeadData(user.email);
+        }
+
+        async function fetchLeadData(email) {
+            try {
+                const { data, error } = await _db
+                    .from('leads')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+
+                if (data) {
+                    // Registered - Update UI with DB Data
+                    if (data.name) {
+                        console.log('Update Name to:', data.name);
+                        const nameEl = document.getElementById('user-name');
+                        if (nameEl) {
+                            nameEl.innerText = data.name;
+                            nameEl.style.display = 'block'; // Force visibility
+                            nameEl.style.color = '#1e293b'; // Force color
+                        }
+
+                        // Optional: Update avatar initials if using UI Avatars
+                        const avatar = document.getElementById('user-avatar');
+                        if (avatar && avatar.src.includes('ui-avatars.com')) {
+                            avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random`;
+                        }
+                    }
+
+                    const voucherDisplay = data.voucher ? data.voucher : '-';
+
+                    statusContainer.innerHTML = `
+                        <div class="info-card">
+                            <span class="info-label">Status Pendaftaran</span>
+                            <div class="info-value"><span class="badge-success" style="background:#dcfce7; color:#166534; padding:4px 12px; border-radius:99px; font-size:0.9rem; font-weight:600;">Terdaftar</span></div>
+                        </div>
+                        <div class="info-card">
+                            <span class="info-label">Nomor WhatsApp</span>
+                            <div class="info-value" style="font-weight:600; color:#334155;">${data.phone || '-'}</div>
+                        </div>
+                    `;
+                    // If no voucher, maybe show button to claim?
+                    if (!data.voucher) {
+                        statusContainer.innerHTML += `
+                            <div style="margin-top:1rem; padding:1rem; border:1px dashed #aaa; border-radius:8px; text-align:center;">
+                                <p style="font-size:0.9rem; color:#666; margin-bottom:0.5rem;">Anda belum mengambil voucher diskon.</p>
+                                <button onclick="claimVoucher()" class="btn btn-primary" style="font-size:0.9rem; width:100%;">Ambil Voucher Sekarang</button>
+                            </div>
+                        `;
+                    } else {
+                        // Populate Voucher Tab listing
+                        const voucherTab = document.getElementById('voucher-tab-content');
+                        if (voucherTab) {
+                            // Calculate Status (Mock logic: Valid for 30 days from creation)
+                            const createdDate = data.created_at ? new Date(data.created_at) : new Date();
+                            const expiryDate = new Date(createdDate);
+                            expiryDate.setDate(createdDate.getDate() + 30); // 30 Days validity
+
+                            const now = new Date();
+                            const isExpired = now > expiryDate;
+                            const statusBadge = isExpired
+                                ? '<span style="background:#fee2e2; color:#991b1b; padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:600;">Kadaluarsa</span>'
+                                : '<span style="background:#d1fae5; color:#065f46; padding:4px 12px; border-radius:99px; font-size:0.8rem; font-weight:600;">Aktif</span>';
+
+                            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                            const expiryString = expiryDate.toLocaleDateString('id-ID', options);
+
+                            voucherTab.innerHTML = `
+                                <div class="voucher-list" style="display:flex; flex-direction:column; gap:1rem;">
+                                    <div class="voucher-ticket">
+                                        <div class="ticket-left">
+                                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
+                                                <div>
+                                                    <h4 style="margin:0; color:var(--color-primary); font-size:1.2rem;">Voucher Pendidikan</h4>
+                                                    <p style="margin:0.25rem 0 0; color:#64748b; font-size:0.9rem;">Diskon 50% Biaya Pendaftaran</p>
+                                                </div>
+                                                ${statusBadge}
+                                            </div>
+                                            <p style="margin:0; font-size:0.8rem; color:#94a3b8;">Berlaku hingga: ${expiryString}</p>
+                                        </div>
+                                        <div class="ticket-right">
+                                            <span style="font-size:0.75rem; text-transform:uppercase; color:#94a3b8; letter-spacing:1px; margin-bottom:0.5rem;">Kode Voucher</span>
+                                            <div class="ticket-code">${data.voucher}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                } else {
+                    // Not found in leads table (New User via Google)
+                    statusContainer.innerHTML = `
+                         <div class="info-card" style="border-left-color: #F59E0B;">
+                            <span class="info-label">Status</span>
+                            <div class="info-value" style="color: #D97706;">Belum Lengkap</div>
+                        </div>
+                        <p style="font-size:0.9rem; color:#666; margin-bottom:1rem;">Data Anda belum lengkap di sistem akademik kami. Kode voucher belum tersedia.</p>
+                        <button onclick="competeData()" class="btn btn-primary" style="width:100%">Lengkapi Data Sekarang</button>
+                    `;
+                }
+            } catch (err) {
+                console.error(err);
+                statusContainer.innerHTML = '<p style="color:red">Gagal memuat data status.</p>';
+            }
+        }
+
+        // Logout Logic
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await _db.auth.signOut();
+            window.location.href = 'index.html';
+        });
+
+        // Run Check
+        checkSession();
+
+        // Listen for Auth Changes
+        _db.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Initialize Toast Engine
+        function showToast(message, type = 'info') {
+            const icons = {
+                success: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+                error: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+                info: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+            };
+
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
+        // Generate Voucher Helper
+        function generateVoucherCode(name) {
+            const prefix = 'UPB2025';
+            const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+            // Optional: Use name initials?
+            return `${prefix}${suffix}`;
+        }
+
+        // Claim Voucher Action
+        window.claimVoucher = async function () {
+            const btn = document.querySelector('.btn-primary'); // Target the Claim button
+            if (btn) {
+                btn.innerText = 'Memproses...';
+                btn.disabled = true;
+            }
+
+            try {
+                const { data: { session } } = await _db.auth.getSession();
+                if (!session) return;
+
+                const userEmail = session.user.email;
+                const userName = session.user.user_metadata.full_name || userEmail.split('@')[0];
+
+                // 1. Get Current Lead Data (Need Phone)
+                const { data: leadData, error: fetchError } = await _db
+                    .from('leads')
+                    .select('*')
+                    .eq('email', userEmail)
+                    .single();
+
+                if (fetchError || !leadData) {
+                    showToast('Data tidak ditemukan. Silakan lengkapi data terlebih dahulu.', 'error');
+                    window.location.reload();
+                    return;
+                }
+
+                if (!leadData.phone) {
+                    showToast('Nomor WhatsApp belum terdaftar. Silakan hubungi admin.', 'error');
+                    return;
+                }
+
+                // 2. Generate Code
+                const newVoucher = generateVoucherCode(userName);
+
+                // 3. Update Voucher in DB
+                const { error: updateError } = await _db
+                    .from('leads')
+                    .update({
+                        voucher: newVoucher
+                        // status: 'validated' // Removed because column doesn't exist
+                    })
+                    .eq('email', userEmail);
+
+                if (updateError) throw updateError;
+
+                // 4. Send WhatsApp (Using global helper from script.js? Need extended logic or inline)
+                // Since script.js is likely NOT loaded here, we need to replicate send logic OR import script.js
+                // Easier to replicate for this specific "Voucher" message.
+
+                await sendVoucherWhatsapp(leadData.phone, userName, newVoucher);
+
+                showToast('Voucher berhasil diklaim! Kode telah dikirim ke WhatsApp Anda.', 'success');
+                window.location.reload();
+
+            } catch (err) {
+                console.error('Claim Error:', err);
+                showToast('Gagal mengklaim voucher. Error Detail: ' + (err.message || JSON.stringify(err)), 'error');
+                if (btn) {
+                    btn.innerText = 'Ambil Voucher Sekarang';
+                    btn.disabled = false;
+                }
+            }
+        };
+
+        async function sendVoucherWhatsapp(target, name, voucher) {
+            // Formatting
+            let formattedTarget = target.trim();
+            if (formattedTarget.startsWith('0')) formattedTarget = '62' + formattedTarget.slice(1);
+            else if (formattedTarget.startsWith('+')) formattedTarget = formattedTarget.substring(1);
+
+            const message = `Halo Kak *${name}*! 👋\n\nSelamat! Anda berhasil mengklaim Voucher Diskon Pendidikan.\n\n🎟️ Kode Voucher: *${voucher}*\n\nSimpan kode ini baik-baik. Tunjukkan saat daftar ulang untuk mendapatkan diskon 50% biaya pendaftaran.\n\n_Universitas Pelita Bangsa_`;
+
+            const formData = new FormData();
+            formData.append('target', formattedTarget);
+            formData.append('message', message);
+            formData.append('countryCode', '62');
+
+            try {
+                await fetch('https://api.fonnte.com/send', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'kmi7D56VnH37u5Bmy9e5' },
+                    body: formData
+                });
+            } catch (e) {
+                console.error("WA Error", e);
+            }
+        }
+
+        // Tab Switching Logic
+        window.switchTab = function (tabId) {
+            // 1. Remove active class from all buttons and contents
+            document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // 2. Add active class to clicked button and target content
+            // Find button by onclick attribute (simple way) or add IDs to buttons. 
+            // Better: loop through buttons and check onclick value
+            const buttons = document.querySelectorAll('.nav-tab');
+            for (let btn of buttons) {
+                if (btn.getAttribute('onclick').includes(tabId)) {
+                    btn.classList.add('active');
+                    break;
+                }
+            }
+
+            const target = document.getElementById('tab-' + tabId);
+            if (target) {
+                target.classList.add('active');
+                if (typeof feather !== 'undefined') feather.replace();
+            }
+        }
+    </script>
+</body>
+
+</html>

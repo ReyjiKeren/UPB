@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Universitas Pelita Bangsa</title>
+    <!-- Removed external style.css to prevent conflicts -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #0F52BA;
+            --primary-dark: #003366;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8fafc;
+            /* Modern Dot Pattern */
+            background-image:
+                radial-gradient(#0F52BA 0.5px, transparent 0.5px),
+                radial-gradient(#0F52BA 0.5px, #f8fafc 0.5px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+            /* Subtle blue gradient overlay for depth */
+            background:
+                radial-gradient(at 0% 0%, rgba(15, 82, 186, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(15, 82, 186, 0.05) 0px, transparent 50%),
+                radial-gradient(#cbd5e1 0.8px, transparent 0.8px),
+                radial-gradient(#cbd5e1 0.8px, #f8fafc 0.8px);
+            background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+            background-position: 0 0, 0 0, 0 0, 14px 14px;
+            background-attachment: fixed;
+
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- Layout --- */
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --- Header --- */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: var(--surface);
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.025em;
+        }
+
+        .header-title p {
+            margin: 0.25rem 0 0;
+            color: var(--secondary);
+            font-size: 0.875rem;
+        }
+
+        /* --- Stats Cards --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .stat-icon.blue {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .stat-icon.green {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+
+        .stat-icon.orange {
+            background: #fff7ed;
+            color: #f97316;
+        }
+
+        .stat-info h3 {
+            margin: 0;
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.025em;
+        }
+
+        .stat-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* --- Cards --- */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        /* --- Forms --- */
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            width: 250px;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.1);
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* --- Table --- */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* --- Buttons & Badges --- */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-danger {
+            background: white;
+            border-color: var(--border);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+            border-color: #fecaca;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: #64748b;
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: var(--surface);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+            margin: 10vh auto;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .login-card h2 {
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-card input {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .card-header>div {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="admin-wrapper">
+        <!-- Login Section -->
+        <div id="login-section" class="login-card">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <img src="assets/logo.png" alt="Logo" style="height: 60px; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">Admin Portal</h2>
+                <p style="color: #64748b;">Universitas Pelita Bangsa</p>
+            </div>
+            <form id="login-form">
+                <input type="password" id="admin-password" placeholder="Masukkan PIN Admin"
+                    style="text-align: center; font-size: 1.2rem; letter-spacing: 2px;">
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; justify-content: center; margin-top: 1rem;">
+                    <i data-feather="lock"></i> Masuk Dashboard
+                </button>
+            </form>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="main-content dashboard">
+
+            <!-- Header -->
+            <div class="admin-header">
+                <div class="header-title">
+                    <h1>Dashboard Overview</h1>
+                    <p>Selamat datang kembali, Admin.</p>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span class="badge badge-info"><i data-feather="calendar" style="width:12px; margin-right:4px;"></i>
+                        2025 Period</span>
+                    <button id="logout-btn" class="btn btn-outline btn-sm">
+                        <i data-feather="log-out"></i> Keluar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i data-feather="users"></i></div>
+                    <div class="stat-info">
+                        <h3>128</h3>
+                        <p>Total Calon Mahasiswa</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i data-feather="check-circle"></i></div>
+                    <div class="stat-info">
+                        <h3>85</h3>
+                        <p>Sudah Validasi</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i data-feather="clock"></i></div>
+                    <div class="stat-info">
+                        <h3>43</h3>
+                        <p>Menunggu Verifikasi</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="background: #eff6ff; padding: 6px; border-radius: 6px; color: var(--primary);">
+                            <i data-feather="settings" style="width: 18px; height: 18px;"></i>
+                        </span>
+                        <h3>Pengaturan Penawaran</h3>
+                    </div>
+                </div>
+                <div style="padding: 2rem;">
+                    <form id="settings-form" novalidate>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Status
+                                    Penawaran</label>
+                                <select id="set-status"
+                                    style="width:100%; padding: 0.7rem; border:1px solid var(--border); border-radius:8px; background: #fff;">
+                                    <option value="active">🟢 Aktif (Muncul)</option>
+                                    <option value="inactive">🔴 Nonaktif (Sembunyi)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Judul
+                                    Tombol</label>
+                                <input type="text" id="set-btn-title" value="Diskon 50%"
+                                    style="width:100%; padding: 0.7rem; border:1px solid var(--border); border-radius:8px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Teks
+                                    Ribbon</label>
+                                <input type="text" id="set-ribbon" value="KUOTA TERBATAS"
+                                    style="width:100%; padding: 0.7rem; border:1px solid var(--border); border-radius:8px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Diskon
+                                    Utama</label>
+                                <input type="text" id="set-discount" value="50%"
+                                    style="width:100%; padding: 0.7rem; border:1px solid var(--border); border-radius:8px;">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Loop Timer
+                                    (Menit)</label>
+                                <input type="number" id="set-timer" value="59"
+                                    style="width:100%; padding: 0.7rem; border:1px solid var(--border); border-radius:8px;">
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+
+                        <h4 style="margin-bottom: 1.5rem; color: #475569;">🎨 Tampilan Video Header</h4>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Warna
+                                    Overlay</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="color" id="set-overlay-color" value="#0b3c88"
+                                        style="height: 42px; width: 60px; border:none; background:none; cursor:pointer;">
+                                    <input type="text" id="set-overlay-color-text" value="#0b3c88" readonly
+                                        style="flex:1; padding: 0.7rem; border:1px solid var(--border); border-radius:8px; background:#f8fafc;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Opasitas (<span
+                                        id="opacity-display">75%</span>)</label>
+                                <input type="range" id="set-overlay-opacity" min="0" max="100" value="75"
+                                    style="width: 100%; accent-color: var(--primary);">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Lengkung Bawah
+                                    (<span id="rounded-display">0px</span>)</label>
+                                <input type="range" id="set-overlay-rounded" min="0" max="200" value="0" step="5"
+                                    style="width: 100%; accent-color: var(--primary);">
+                            </div>
+                            <div class="form-group">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Gradasi Pudar
+                                    (<span id="gradient-display">6rem</span>)</label>
+                                <input type="range" id="set-overlay-gradient" min="0" max="30" value="6" step="1"
+                                    style="width: 100%; accent-color: var(--primary);">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 2rem;">
+                            <i data-feather="save"></i> Simpan Perubahan
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Leads Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="background: #f0fdf4; padding: 6px; border-radius: 6px; color: #16a34a;">
+                            <i data-feather="users" style="width: 18px; height: 18px;"></i>
+                        </span>
+                        <h3>Data Calon Mahasiswa</h3>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="search-box">
+                            <i data-feather="search"></i>
+                            <input type="text" id="search-input" placeholder="Cari nama atau email...">
+                        </div>
+                        <button onclick="openAddModal()" class="btn btn-primary btn-sm">
+                            <i data-feather="plus"></i> Baru
+                        </button>
+                        <button onclick="loadLeads(); showToast('Memuat ulang data...', 'info');"
+                            class="btn btn-outline btn-sm" style="color: var(--primary); border-color: var(--primary);">
+                            <i data-feather="refresh-cw"></i> Refresh
+                        </button>
+                        <button id="clear-leads" class="btn btn-outline btn-sm"
+                            style="color: var(--danger); border-color: var(--danger);">
+                            <i data-feather="trash-2"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="leads-table">
+                        <thead>
+                            <tr>
+                                <th>Tanggal Login</th>
+                                <th>Nama Lengkap</th>
+                                <th>Kontak</th>
+                                <th>Kode Voucher</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Empty State -->
+                <div id="empty-state" style="display: none; text-align: center; padding: 4rem 2rem;">
+                    <div
+                        style="background: #f1f5f9; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <i data-feather="inbox" style="color: #64748b; width: 24px; height: 24px;"></i>
+                    </div>
+                    <h4 style="margin: 0; color: #334155;">Belum ada data</h4>
+                    <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.9rem;">Data pendaftar akan muncul di
+                        sini.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="lead-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Tambah Member</h3>
+                <button onclick="closeModal()" class="close-modal">&times;</button>
+            </div>
+            <form id="lead-form" novalidate>
+                <input type="hidden" id="lead-id">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="lead-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="lead-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>No. WhatsApp</label>
+                    <input type="tel" id="lead-phone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Kode Voucher</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="lead-voucher" class="form-control" placeholder="Genererate otomatis..."
+                            readonly style="background-color: #f3f4f6;">
+                        <button type="button" class="btn btn-secondary" onclick="generateVoucher()"
+                            style="white-space: nowrap;">⚡ Generate</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Simpan Data</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Simple Auth & Supabase Setup
+        const loginForm = document.getElementById('login-form');
+        const loginSection = document.getElementById('login-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+
+        const supabaseUrl = 'https://oypmvarhedxcwrclzpup.supabase.co';
+        const supabaseKey = 'sb_publishable_goV8IJgbjqbFDH30A36X2A_PMAS_6Ao';
+        const _db = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Check Session
+        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+            showDashboard();
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            if (password === 'admin123') {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showDashboard();
+            } else {
+                showToast('Password salah!', 'error');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            sessionStorage.removeItem('adminLoggedIn');
+            location.reload();
+        });
+
+        function showDashboard() {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            loadSettings();
+            loadLeads();
+        }
+
+        // --- Settings Logic (Supabase) ---
+        // --- Settings Logic (Supabase) ---
+        async function loadSettings() {
+            try {
+                // Parallel Fetch
+                const p1 = _db.from('settings').select('value').eq('key', 'offer_status').single();
+                const p2 = _db.from('settings').select('value').eq('key', 'offer_config').single();
+                const p3 = _db.from('settings').select('value').eq('key', 'hero_overlay_config').single();
+
+                const [r1, r2, r3] = await Promise.all([p1, p2, p3]);
+
+                // 1. Status
+                if (r1.data) document.getElementById('set-status').value = r1.data.value;
+
+                // 2. Offer Config
+                if (r2.data) {
+                    try {
+                        const config = JSON.parse(r2.data.value);
+                        if (config.btnTitle) document.getElementById('set-btn-title').value = config.btnTitle;
+                        if (config.ribbonText) document.getElementById('set-ribbon').value = config.ribbonText;
+                        if (config.discountText) document.getElementById('set-discount').value = config.discountText;
+                        if (config.timerDuration) document.getElementById('set-timer').value = config.timerDuration;
+                    } catch (e) { console.error('Error parsing offer config', e); }
+                }
+
+                // 3. Overlay Config
+                if (r3.data) {
+                    try {
+                        const overlay = JSON.parse(r3.data.value);
+                        if (overlay.color) {
+                            document.getElementById('set-overlay-color').value = overlay.color;
+                            document.getElementById('set-overlay-color-text').value = overlay.color;
+                        }
+                        if (overlay.opacity !== undefined) {
+                            document.getElementById('set-overlay-opacity').value = overlay.opacity;
+                            document.getElementById('opacity-display').innerText = overlay.opacity + '%';
+                        }
+                        if (overlay.rounded !== undefined) {
+                            document.getElementById('set-overlay-rounded').value = overlay.rounded;
+                            document.getElementById('rounded-display').innerText = overlay.rounded + 'px';
+                        }
+                        if (overlay.gradient !== undefined) {
+                            document.getElementById('set-overlay-gradient').value = overlay.gradient;
+                            document.getElementById('gradient-display').innerText = overlay.gradient + 'rem';
+                        }
+                    } catch (e) { console.error('Error parsing overlay config', e); }
+                }
+
+            } catch (err) {
+                console.error("Error loading settings:", err);
+            }
+        }
+
+        // Live Listeners for Overlay UI
+        document.getElementById('set-overlay-color').addEventListener('input', (e) => {
+            document.getElementById('set-overlay-color-text').value = e.target.value;
+        });
+        document.getElementById('set-overlay-opacity').addEventListener('input', (e) => {
+            document.getElementById('opacity-display').innerText = e.target.value + '%';
+        });
+        document.getElementById('set-overlay-rounded').addEventListener('input', (e) => {
+            document.getElementById('rounded-display').innerText = e.target.value + 'px';
+        });
+        document.getElementById('set-overlay-gradient').addEventListener('input', (e) => {
+            document.getElementById('gradient-display').innerText = e.target.value + 'rem';
+        });
+
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = 'Menyimpan...';
+            btn.disabled = true;
+
+            // Gather Data
+            const status = document.getElementById('set-status').value;
+
+            const offerConfig = {
+                btnTitle: document.getElementById('set-btn-title').value,
+                ribbonText: document.getElementById('set-ribbon').value,
+                discountText: document.getElementById('set-discount').value,
+                timerDuration: document.getElementById('set-timer').value
+            };
+
+            const overlayConfig = {
+                color: document.getElementById('set-overlay-color').value,
+                opacity: document.getElementById('set-overlay-opacity').value,
+                rounded: document.getElementById('set-overlay-rounded').value,
+                gradient: document.getElementById('set-overlay-gradient').value
+            };
+
+            try {
+                // Save All
+                const p1 = _db.from('settings').upsert({ key: 'offer_status', value: status });
+                const p2 = _db.from('settings').upsert({ key: 'offer_config', value: JSON.stringify(offerConfig) });
+                const p3 = _db.from('settings').upsert({ key: 'hero_overlay_config', value: JSON.stringify(overlayConfig) });
+
+                const [r1, r2, r3] = await Promise.all([p1, p2, p3]);
+
+                if (r1.error || r2.error || r3.error) throw new Error("One or more saves failed");
+
+                showToast('Pengaturan berhasil disimpan!', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal menyimpan pengaturan.', 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // --- Leads Logic (CRUD) ---
+        // Global leads cache for filtering
+        let allLeads = [];
+
+        // Search Listener
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allLeads.filter(l =>
+                (l.name && l.name.toLowerCase().includes(term)) ||
+                (l.email && l.email.toLowerCase().includes(term)) ||
+                (l.voucher && l.voucher.toLowerCase().includes(term))
+            );
+            renderLeadsTable(filtered);
+        });
+
+        async function loadLeads() {
+            const tbody = document.querySelector('#leads-table tbody');
+            const emptyState = document.getElementById('empty-state');
+
+            // Select all leads
+            const { data: leads, error } = await _db.from('leads').select('*');
+
+            if (error) {
+                console.error('Supabase Error:', error);
+                showToast(`Gagal load data: ${error.message}`, 'error');
+                return;
+            }
+
+            allLeads = leads || [];
+
+            // Sort Descending by Date
+            allLeads.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+            updateStats(allLeads);
+            renderLeadsTable(allLeads);
+        }
+
+        function updateStats(leads) {
+            const total = leads.length;
+            const validated = leads.filter(l => l.voucher).length;
+            const pending = total - validated;
+
+            // Update DOM (Ensure these selectors match CSS I added earlier)
+            // I used classes primarily, I should add IDs to the H3 elements or target them by order
+            // Since I didn't add IDs to H3s in the Step 2223 HTML, I should target them by selector.
+            // .stat-card:nth-child(1) h3 -> Total
+            // .stat-card:nth-child(2) h3 -> Validated
+            // .stat-card:nth-child(3) h3 -> Pending
+
+            const stats = document.querySelectorAll('.stat-info h3');
+            if (stats.length >= 3) {
+                stats[0].innerText = total;
+                stats[1].innerText = validated;
+                stats[2].innerText = pending;
+            }
+        }
+
+        function renderLeadsTable(leads) {
+            const tbody = document.querySelector('#leads-table tbody');
+            const emptyState = document.getElementById('empty-state');
+
+            tbody.innerHTML = '';
+
+            if (!leads || leads.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+
+            leads.forEach((lead) => {
+                const date = lead.created_at ? new Date(lead.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+
+                // Determine Status
+                let statusBadge = '';
+                if (lead.voucher) {
+                    statusBadge = '<span class="badge badge-success">Terverifikasi</span>';
+                } else if (lead.phone) {
+                    statusBadge = '<span class="badge badge-warning">Menunggu</span>';
+                } else {
+                    statusBadge = '<span class="badge badge-danger">Incomplete</span>';
+                }
+
+                // Contact Column
+                const contactHtml = `
+                    <div style="font-size:0.9rem; font-weight:500; color:#334155;">${lead.email || '-'}</div>
+                    <div style="font-size:0.8rem; color:#64748b;">${lead.phone || '-'}</div>
+                `;
+
+                const tr = document.createElement('tr');
+                const leadString = encodeURIComponent(JSON.stringify(lead));
+
+                tr.innerHTML = `
+                    <td>${date}</td>
+                    <td><div style="font-weight:600; color:#0f172a;">${lead.name || '-'}</div></td>
+                    <td>${contactHtml}</td>
+                    <td><span style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color: var(--primary); font-weight: 700; border: 1px solid var(--border);">${lead.voucher || '-'}</span></td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-primary btn-sm" onclick="openEditModal('${leadString}')" title="Edit">
+                            <i data-feather="edit-2" style="width:14px;"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteLead(${lead.id})" title="Hapus">
+                            <i data-feather="trash" style="width:14px;"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Re-render icons
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        // Modal Logic
+        const modal = document.getElementById('lead-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const leadForm = document.getElementById('lead-form');
+        const leadIdInput = document.getElementById('lead-id');
+
+        // New Voucher Element
+        const leadVoucherInput = document.getElementById('lead-voucher');
+
+        window.generateVoucher = function () {
+            const year = new Date().getFullYear();
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let randomStr = '';
+            for (let i = 0; i < 4; i++) {
+                randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            const code = `UPB${year}${randomStr}`;
+            leadVoucherInput.value = code;
+        }
+
+        window.openAddModal = function () {
+            modalTitle.innerText = 'Tambah Member Baru';
+            leadForm.reset();
+            leadIdInput.value = '';
+            // Auto generate voucher for new users? Or let them click? User said "tombol generate", so let them click.
+            // But clearing it is important.
+            leadVoucherInput.value = '';
+            modal.classList.add('active');
+        }
+
+        window.openEditModal = function (leadEncoded) {
+            const lead = JSON.parse(decodeURIComponent(leadEncoded));
+            modalTitle.innerText = 'Edit Data Member';
+            leadIdInput.value = lead.id;
+            document.getElementById('lead-name').value = lead.name || '';
+            document.getElementById('lead-email').value = lead.email || '';
+            document.getElementById('lead-phone').value = lead.phone || '';
+            leadVoucherInput.value = lead.voucher || '';
+            modal.classList.add('active');
+        }
+
+        window.closeModal = function () {
+            modal.classList.remove('active');
+        }
+
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Helper functions for validation and formatting
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function formatPhone(phone) {
+            // Remove all non-digit characters
+            let cleaned = phone.replace(/\D/g, '');
+            // If it starts with 0, replace with 62
+            if (cleaned.startsWith('0')) {
+                cleaned = '62' + cleaned.substring(1);
+            }
+            // If it doesn't start with 62, and is a valid length, assume it's a local number and prepend 62
+            if (!cleaned.startsWith('62') && cleaned.length >= 8 && cleaned.length <= 13) { // Common phone lengths
+                cleaned = '62' + cleaned;
+            }
+            return cleaned;
+        }
+
+        // Save Lead (Instert/Update) with Validation
+        leadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = leadIdInput.value;
+            let name = document.getElementById('lead-name').value.trim();
+            const email = document.getElementById('lead-email').value.trim();
+            let phone = document.getElementById('lead-phone').value;
+            const voucher = leadVoucherInput.value.trim();
+
+            let errors = [];
+
+            // Validation
+            if (!name) {
+                errors.push('Mohon isi Nama Lengkap.');
+            }
+            if (!isValidEmail(email)) {
+                errors.push('Format Email tidak valid.');
+            }
+
+            const formattedPhone = formatPhone(phone);
+            if (formattedPhone.length < 10) { // Minimum length for a valid international number (e.g., 6281234567)
+                errors.push('Nomor WhatsApp tidak valid (minimal 10 digit).');
+            }
+
+            if (errors.length > 0) {
+                showToast(errors.join('<br>'), 'error');
+                return;
+            }
+
+            phone = formattedPhone;
+
+            const payload = { name, email, phone, voucher };
+
+            // Show loading state
+            const btn = leadForm.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = 'Menyimpan...';
+            btn.disabled = true;
+
+            let result;
+
+            if (id) {
+                // Update
+                result = await _db.from('leads').update(payload).eq('id', id);
+            } else {
+                // Insert
+                result = await _db.from('leads').insert(payload);
+            }
+
+            if (result.error) {
+                console.error(result.error);
+                let msg = 'Gagal menyimpan data.';
+                if (result.error.code === '23505' || (result.error.message && result.error.message.includes('duplicate key'))) {
+                    msg = 'Data duplikat! Email atau Nomor ini sudah terdaftar.';
+                }
+                showToast(msg, 'error');
+            } else {
+                showToast('Data berhasil disimpan!', 'success');
+                closeModal();
+                loadLeads();
+            }
+
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
+
+        window.deleteLead = async function (id) {
+            if (confirm('Yakin ingin menghapus data ini dari Database?')) {
+                const { error } = await _db.from('leads').delete().eq('id', id);
+
+                if (error) {
+                    showToast(`Gagal hapus: ${error.message}`, 'error');
+                } else {
+                    showToast('Data berhasil dihapus.', 'success');
+                    loadLeads();
+                }
+            }
+        };
+
+        document.getElementById('clear-leads').addEventListener('click', () => {
+            showToast('Fitur "Hapus Semua" dinonaktifkan demi keamanan.', 'info');
+        });
+
+        // --- Toast System ---
+        function showToast(message, type = 'info') {
+            const icons = {
+                success: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+                error: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+                info: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`
+            };
+
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-message">${message}</div>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+    </script>
+</body>
+
+</html>

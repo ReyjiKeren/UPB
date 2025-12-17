@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Website Resmi Universitas Pelita Bangsa - Kampus Modern, Minimalis, dan Profesional.">
+    <title>Universitas Pelita Bangsa</title>
+    <link rel="shortcut icon" href="logoupb.png" type="image/x-icon">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="#" class="logo">
+                <img src="logoupb.png" alt="Logo UPB" class="logo-img">
+                <div class="logo-text">
+                    <span class="logo-title">Universitas <span class="text-primary">Pelita Bangsa</span></span>
+                    <span class="logo-subtitle">Bekasi</span>
+                </div>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                <i data-feather="menu"></i>
+            </button>
+            <ul class="nav-links">
+                <li class="mobile-close-btn"><a href="#" id="close-menu"><i data-feather="arrow-left"></i> Kembali</a>
+                </li>
+                <li><a href="#home"><i data-feather="home"></i> Beranda</a></li>
+                <li><a href="#about"><i data-feather="info"></i> Tentang</a></li>
+                <li><a href="#faculties"><i data-feather="grid"></i> Fakultas</a></li>
+                <li><a href="#facilities"><i data-feather="layout"></i> Fasilitas</a></li>
+                <li><a href="#news"><i data-feather="file-text"></i> Berita</a></li>
+                <li><a href="#contact"><i data-feather="phone"></i> Kontak</a></li>
+                <li><a href="#hero-signup-form" id="nav-login-btn" class="btn btn-primary">Daftar Sekarang</a></li>
+                <li id="nav-user-profile" style="display: none;">
+                    <a href="profile.html" class="nav-profile-link">
+                        <img src="" id="nav-user-avatar" alt="Avatar" class="nav-avatar">
+                        <span id="nav-user-name">User</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay"></div>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <video autoplay muted loop playsinline class="hero-video">
+                <source src="vidupb.webm" type="video/webm">
+                Your browser does not support the video tag.
+            </video>
+            <div class="hero-overlay"></div>
+            <div class="hero-registration-glass" id="glass-overlay">
+                <button type="button" class="glass-close-btn" onclick="toggleHeroOverlay(false)">
+                    <i data-feather="x"></i>
+                </button>
+                <div class="hero-glass-header">
+                    <h2>Mulai Langkah Suksesmu Hari Ini! 🎓</h2>
+                </div>
+
+                <!-- Manual Form with Google Action -->
+                <div id="hero-signup-form-container">
+                    <div class="input-group">
+                        <input type="text" id="hero-name" placeholder="Nama Lengkap" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="tel" id="hero-phone" placeholder="Nomor WhatsApp (08...)" required>
+                    </div>
+
+                    <!-- Google Sign In Button acts as Submit -->
+                    <button id="hero-google-login" class="btn btn-google">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo"
+                            width="20">
+                        <span>Lanjutkan dengan Google</span>
+                    </button>
+                    <!-- Hidden form for structure if needed, but div is safer for custom logic -->
+                </div>
+
+                <p class="small-note">*Data Anda aman & terenkripsi.</p>
+            </div>
+
+            <div class="container hero-content">
+                <!-- <div class="hero-cta fade-up">
+                    <a href="#admissions" class="btn btn-primary">Daftar Mahasiswa Baru</a>
+                    <a href="#about" class="btn btn-outline">Pelajari Lebih Lanjut</a>
+                </div> -->
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats fade-up">
+            <div class="container stats-grid">
+                <div class="stat-item">
+                    <h3 class="stat-number" data-target="15000">0</h3>
+                    <p class="stat-label">Mahasiswa Aktif</p>
+                </div>
+                <div class="stat-item">
+                    <h3 class="stat-number" data-target="50">0</h3>
+                    <p class="stat-label">Program Studi</p>
+                </div>
+                <div class="stat-item">
+                    <h3 class="stat-number" data-target="100">0</h3>
+                    <p class="stat-label">Penghargaan</p>
+                </div>
+                <div class="stat-item">
+                    <h3 class="stat-number" data-target="25">0</h3>
+                    <p class="stat-label">Tahun Pengalaman</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <!-- About Section -->
+        <section id="about" class="section">
+            <div class="container">
+                <div class="section-header fade-up">
+                    <h2 class="section-title">Tentang Kami</h2>
+                    <p class="section-desc">Menjadi perguruan tinggi yang unggul di tingkat nasional.</p>
+                </div>
+                <div class="about-content">
+
+                    <!-- Row 3: Rector (Wide Section) -->
+                    <div class="rector-section-modern fade-up" style="margin-bottom: 4rem;">
+                        <div class="rector-photo-circle">
+                            <img src="new_rektor_img.png" alt="Rektor Universitas Pelita Bangsa">
+                        </div>
+                        <div class="rector-quote-modern">
+                            <p class="rector-quote-text">
+                                Selamat datang di portal resmi Universitas Pelita Bangsa. Kami berkomitmen memberikan
+                                pendidikan,
+                                penelitian, dan pelayanan terbaik bagi masyarakat. Mari bersama‑sama membangun masa
+                                depan yang
+                                cerah dan meraih prestasi gemilang.
+                            </p>
+                            <div class="rector-name-modern">Hamzah M. Mardi Putra, S.K.M., M.M., D.B.A.</div>
+                            <div class="rector-role-modern">Rektor Universitas Pelita Bangsa</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 1: Sejarah (Zig-Zag) -->
+                    <div class="about-story-row fade-up">
+                        <div class="about-story-text">
+                            <h3>Sejarah Singkat</h3>
+                            <p style="line-height: 1.8; color: #475569; font-size: 1.05rem;">
+                                Universitas Pelita Bangsa hadir sebagai wujud nyata kontribusi dalam mencerdaskan
+                                kehidupan bangsa.
+                                Dengan komitmen tinggi terhadap kualitas pendidikan, kami terus berinovasi untuk
+                                mencetak lulusan
+                                yang siap bersaing di era global. Kami percaya bahwa pendidikan adalah kunci untuk
+                                membangun
+                                masa depan yang lebih baik.
+                            </p>
+                        </div>
+                        <div class="about-story-img">
+                            <!-- User designated local image -->
+                            <img src="GEDUNG-UPB-DRONE-VIEW-2024-scaled-1-1.jpg"
+                                alt="Gedung Kampus Modern Pelita Bangsa">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Visi & Misi (Cards) -->
+                    <div class="about-cards-row fade-up">
+                        <!-- Visi Card -->
+                        <div class="vm-card">
+                            <div class="vm-icon">
+                                <i data-feather="target" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <h4>Visi</h4>
+                            <p style="color: #475569; line-height: 1.6;">
+                                Visi Universitas Pelita Bangsa adalah menjadi <strong>entrepreneur university berkelas
+                                    internasional</strong> pada tahun 2045.
+                            </p>
+                        </div>
+
+                        <!-- Misi Card -->
+                        <div class="vm-card">
+                            <div class="vm-icon">
+                                <i data-feather="compass" style="width: 24px; height: 24px;"></i>
+                            </div>
+                            <h4>Misi</h4>
+                            <ul>
+                                <li>Menyelenggarakan pendidikan berkualitas untuk menghasilkan lulusan unggul & mandiri.
+                                </li>
+                                <li>Menyelenggarakan penelitian & publikasi yang berdaya guna.</li>
+                                <li>Mengimplementasikan pengabdian masyarakat berbasis budaya lokal.</li>
+                                <li>Mengembangkan tata kelola universitas yang profesional & entrepreneurial.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Faculties Section -->
+        <section id="faculties" class="section bg-light">
+            <div class="container faculties-container">
+                <!-- Left Side: Info -->
+                <div class="faculties-info fade-up">
+                    <h2 class="section-title text-primary">FAKULTAS</h2>
+                    <p class="section-desc" style="max-width: 100%; text-align: left; margin-bottom: 2rem;">
+                        <strong>Bukan Sekadar Gelar, Ini Masa Depanmu.</strong><br>
+                        Di Universitas Pelita Bangsa, kami tidak hanya mencetak sarjana, tapi melahirkan profesional
+                        tangguh. Dengan kurikulum adaptif berbasis teknologi dan karakter, lulusan kami siap bersaing,
+                        memimpin, dan menjadi talenta yang paling dicari oleh industri global.
+                    </p>
+
+                    <div class="gallery-stack-container fade-up" onclick="openGalleryModal()"
+                        style="margin-top: 3rem; position: relative; height: 300px; cursor: pointer;">
+                        <h4 style="margin-bottom: 2rem; color: #1e293b; position: relative; z-index: 10;">Galeri Kampus
+                        </h4>
+
+                        <!-- Stack Images -->
+                        <div class="stack-card card-1">
+                            <img src="Galeri kampus/WhatsApp Image 2025-12-17 at 16.02.22.jpeg" alt="Galeri 1">
+                        </div>
+                        <div class="stack-card card-2">
+                            <img src="Galeri kampus/WhatsApp Image 2025-12-17 at 16.02.47.jpeg" alt="Galeri 2">
+                        </div>
+                        <div class="stack-card card-3">
+                            <img src="Galeri kampus/fotomhs.jpeg" alt="Galeri Utama">
+                            <div class="stack-overlay">
+                                <span>Lihat Selengkapnya</span>
+                                <i data-feather="arrow-right-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Card Grid -->
+                <div class="faculties-grid-modern fade-up">
+
+                    <!-- Card 1 -->
+                    <div class="faculty-modern-card">
+                        <div class="card-img-top"
+                            style="background-image: url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80');">
+                        </div>
+                        <div class="card-body-bottom">
+                            <div class="card-logo-circle">
+                                <img src="logoupb.png" alt="UPB">
+                            </div>
+                            <h4>Fakultas Ekonomi dan Bisnis</h4>
+                            <ul class="card-prodi-list">
+                                <li>S2 Magister Manajemen</li>
+                                <li>S1 Manajemen</li>
+                                <li>S1 Bisnis Digital</li>
+                                <li>S1 Kewirausahaan</li>
+                                <li>S1 Ekonomi Syariah</li>
+                                <li>D3 Akuntansi</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="faculty-modern-card">
+                        <div class="card-img-top"
+                            style="background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80');">
+                        </div>
+                        <div class="card-body-bottom">
+                            <div class="card-logo-circle">
+                                <img src="logoupb.png" alt="UPB">
+                            </div>
+                            <h4>Fakultas Teknik</h4>
+                            <ul class="card-prodi-list">
+                                <li>S1 Arsitektur</li>
+                                <li>S1 Teknik Sipil</li>
+                                <li>S1 Teknik Industri</li>
+                                <li>S1 Teknik Informatika</li>
+                                <li>S1 Teknik Lingkungan</li>
+                                <li>S1 Teknologi Hasil Pertanian</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="faculty-modern-card">
+                        <div class="card-img-top"
+                            style="background-image: url('https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80');">
+                        </div>
+                        <div class="card-body-bottom">
+                            <div class="card-logo-circle">
+                                <img src="logoupb.png" alt="UPB">
+                            </div>
+                            <h4>Fakultas Hukum</h4>
+                            <ul class="card-prodi-list">
+                                <li>S1 Hukum</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="faculty-modern-card">
+                        <div class="card-img-top"
+                            style="background-image: url('https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=600&q=80');">
+                        </div>
+                        <div class="card-body-bottom">
+                            <div class="card-logo-circle">
+                                <img src="logoupb.png" alt="UPB">
+                            </div>
+                            <h4>Fakultas Ilmu Keguruan dan Tarbiyah</h4>
+                            <ul class="card-prodi-list">
+                                <li>S1 PGSD</li>
+                                <li>S1 PGPAUD</li>
+                                <li>S1 BKPI</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Facilities Section -->
+        <section id="facilities" class="section">
+            <div class="container">
+                <div class="section-header fade-up">
+                    <h2 class="section-title">Fasilitas Kampus</h2>
+                    <p class="section-desc">Fasilitas modern untuk menunjang kegiatan belajar mengajar.</p>
+                </div>
+                <div class="facilities-grid">
+                    <div class="facility-item fade-up"
+                        style="background-image: url('https://images.unsplash.com/photo-1591405351990-4726e331f141?auto=format&fit=crop&w=800&q=80');">
+                        <i data-feather="monitor" class="facility-icon"></i>
+                        <h4>Laboratorium Komputer</h4>
+                        <p>Dilengkapi perangkat spesifikasi tinggi.</p>
+                    </div>
+                    <div class="facility-item fade-up"
+                        style="background-image: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=80');">
+                        <i data-feather="book" class="facility-icon"></i>
+                        <h4>Perpustakaan Digital</h4>
+                        <p>Akses ribuan e-book dan jurnal.</p>
+                    </div>
+                    <div class="facility-item fade-up"
+                        style="background-image: url('https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80');">
+                        <i data-feather="wifi" class="facility-icon"></i>
+                        <h4>Free Wi-Fi</h4>
+                        <p>Koneksi internet cepat di seluruh area.</p>
+                    </div>
+                    <div class="facility-item fade-up"
+                        style="background-image: url('https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=800&q=80');">
+                        <i data-feather="coffee" class="facility-icon"></i>
+                        <h4>Kantin Modern</h4>
+                        <p>Area bersantai dan bersosialisasi yang nyaman.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Section -->
+        <section id="news" class="section bg-light">
+            <div class="container">
+                <div class="section-header fade-up">
+                    <h2 class="section-title">Berita Terbaru</h2>
+                    <p class="section-desc">Ikuti perkembangan terbaru dari kampus kami.</p>
+                </div>
+                <div class="news-grid">
+                    <article class="news-card fade-up">
+                        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
+                            alt="Mahasiswa Baru" class="news-image">
+                        <div class="news-content">
+                            <span class="news-date">15 Des 2025</span>
+                            <h4>Penerimaan Mahasiswa Baru Gelombang 1</h4>
+                            <p>Segera daftarkan diri anda sebelum kuota terpenuhi.</p>
+                            <a href="#" class="read-more">Baca Selengkapnya &rarr;</a>
+                        </div>
+                    </article>
+                    <article class="news-card fade-up">
+                        <img src="https://images.unsplash.com/photo-1544531586-fde5298cdd40?auto=format&fit=crop&w=800&q=80"
+                            alt="Seminar Teknologi" class="news-image">
+                        <div class="news-content">
+                            <span class="news-date">10 Des 2025</span>
+                            <h4>Seminar Nasional Teknologi 2025</h4>
+                            <p>Menghadirkan pembicara pakar dari industri teknologi terkemuka.</p>
+                            <a href="#" class="read-more">Baca Selengkapnya &rarr;</a>
+                        </div>
+                    </article>
+                    <article class="news-card fade-up">
+                        <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80"
+                            alt="Prestasi Robotik" class="news-image">
+                        <div class="news-content">
+                            <span class="news-date">05 Des 2025</span>
+                            <h4>Prestasi Mahasiswa di Kancah Internasional</h4>
+                            <p>Tim Robotik UPB meraih medali emas di Jepang.</p>
+                            <a href="#" class="read-more">Baca Selengkapnya &rarr;</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- International Partners Section -->
+        <section class="partners-section fade-up">
+            <div class="container">
+                <h2 class="section-title text-center text-primary" style="margin-bottom: 2rem; text-align: center;">
+                    Mitra Internasional UPB</h2>
+                <div class="partners-slider">
+                    <div class="partners-track">
+                        <!-- Set 1 -->
+                        <img src="Mitra Internasional UPB/DYPIMS.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/JEC.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/LINCOLN.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/MMU-1.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/NUS.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/PCCOE.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/PWU.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/RALC-1.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/SIU.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/UKAL-M-M.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/UTM-1.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/iug.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/logo-asia-e-150x150.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/logo-cbn-150x150.jpg" alt="Partner">
+                        <img src="Mitra Internasional UPB/mmu-multimedia-university6129-150x150.jpg" alt="Partner">
+                        <img src="Mitra Internasional UPB/msu-150x150.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/ucsi-univ.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/unitar_logo-150x150.png" alt="Partner">
+
+                        <!-- Set 2 (Duplicate for Loop) -->
+                        <img src="Mitra Internasional UPB/DYPIMS.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/JEC.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/LINCOLN.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/MMU-1.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/NUS.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/PCCOE.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/PWU.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/RALC-1.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/SIU.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/UKAL-M-M.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/UTM-1.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/iug.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/logo-asia-e-150x150.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/logo-cbn-150x150.jpg" alt="Partner">
+                        <img src="Mitra Internasional UPB/mmu-multimedia-university6129-150x150.jpg" alt="Partner">
+                        <img src="Mitra Internasional UPB/msu-150x150.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/ucsi-univ.png" alt="Partner">
+                        <img src="Mitra Internasional UPB/unitar_logo-150x150.png" alt="Partner">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admissions / CTA Section -->
+        <section id="admissions" class="cta-section">
+            <div class="container cta-content">
+                <h2>Siap Bergabung Menjadi Bagian Dari Kami?</h2>
+                <p>Jadilah generasi penerus bangsa yang berkualitas bersama Universitas Pelita Bangsa.</p>
+                <div class="cta-buttons">
+                    <a href="register.html" class="btn btn-white">Daftar Sekarang</a>
+                    <a href="#contact" class="btn btn-outline-white">Hubungi Kami</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <div class="container footer-grid">
+                <div class="footer-col">
+                    <h3>Universitas Pelita Bangsa</h3>
+                    <p>Ruko Bekasi Mas, Jl. Ahmad Yani, RT.004/RW.003, Marga Jaya, Kec. Bekasi Sel., Kota Bks, Jawa
+                        Barat 17148</p>
+                    <div class="contact-info">
+                        <p><i data-feather="phone"></i> (021) 29629456</p>
+                        <p><i data-feather="mail"></i> info@pelitabangsa.ac.id</p>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Tautan Cepat</h4>
+                    <ul>
+                        <li><a href="#home">Beranda</a></li>
+                        <li><a href="#about">Tentang</a></li>
+                        <li><a href="#faculties">Fakultas</a></li>
+                        <li><a href="#admissions">Pendaftaran</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Ikuti Kami</h4>
+                    <div class="social-links">
+                        <a href="#"><i data-feather="instagram"></i></a>
+                        <a href="#"><i data-feather="facebook"></i></a>
+                        <a href="#"><i data-feather="youtube"></i></a>
+                        <a href="#"><i data-feather="twitter"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Universitas Pelita Bangsa. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Special Offer Button -->
+    <div id="special-offer-btn" class="special-offer-btn">
+        <div class="offer-icon-wrapper">
+            <i data-feather="gift" class="offer-icon"></i>
+        </div>
+        <div class="offer-text">
+            <span class="offer-title">Diskon 50%</span>
+            <span class="offer-subtitle">Hanya Hari Ini!</span>
+        </div>
+    </div>
+
+    <!-- Lead Gen Modal -->
+    <div id="offer-modal" class="offer-modal">
+        <div class="offer-modal-content promo-style"
+            style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=800&q=80');">
+            <button id="close-offer-modal" class="offer-close">&times;</button>
+
+            <div class="offer-ribbon-wrapper">
+                <div class="offer-ribbon">KUOTA TERBATAS</div>
+            </div>
+
+            <div class="promo-content">
+                <h2 class="promo-title">Daftar Sekarang<br>& Hemat Biaya!</h2>
+
+                <div class="promo-discount-badge">
+                    <span class="percent">50%</span>
+                    <div class="off-text">
+                        <span>DISKON</span>
+                        <span>HARI INI!</span>
+                    </div>
+                </div>
+
+                <div class="countdown-timer">
+                    <div class="timer-box">
+                        <span id="hours">00</span>
+                    </div>
+                    <span class="timer-sep">:</span>
+                    <div class="timer-box">
+                        <span id="minutes">00</span>
+                    </div>
+                    <span class="timer-sep">:</span>
+                    <div class="timer-box">
+                        <span id="seconds">00</span>
+                    </div>
+                </div>
+
+                <form id="offer-form" class="promo-form" novalidate onsubmit="return false;">
+                    <div class="form-row">
+                        <div class="form-group" style="width: 100%;">
+                            <input type="text" id="offer-name" required placeholder="Nama Lengkap" class="form-control">
+                        </div>
+                        <div class="form-group" style="width: 100%; margin-top: 10px;">
+                            <input type="tel" id="offer-phone" required placeholder="Nomor WhatsApp (08...)"
+                                class="form-control">
+                        </div>
+                    </div>
+
+                    <button type="button" id="offer-google-login" class="btn btn-google"
+                        style="width: 100%; margin-top: 1rem; justify-content: center;">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo"
+                            width="20">
+                        <span>Klaim 50% via Google Login</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Modal -->
+    <div id="gallery-modal" class="gallery-modal">
+        <div class="gallery-modal-content">
+            <button class="gallery-close" onclick="closeGalleryModal()">&times;</button>
+            <h3 style="margin-bottom: 1.5rem; text-align: center; color: #1e293b;">Galeri Kampus</h3>
+            <div class="gallery-grid">
+                <img src="Galeri kampus/WhatsApp Image 2025-12-17 at 16.02.22.jpeg" alt="Galeri Full 1">
+                <img src="Galeri kampus/WhatsApp Image 2025-12-17 at 16.02.47.jpeg" alt="Galeri Full 2">
+                <img src="Galeri kampus/fotomhs.jpeg" alt="Galeri Full 3">
+                <img src="GEDUNG-UPB-DRONE-VIEW-2024-scaled-1-1.jpg" alt="Gedung UPB">
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        feather.replace();
+    </script>
+
+    <!-- Hybrid AI Assistant HTML -->
+    <!-- 1. Floating Assistant Button -->
+    <div id="ai-assistant-btn" class="ai-float-btn" onclick="openAIChoiceModal()">
+        <div class="ai-btn-content">
+            <span class="ai-status-dot"></span>
+            <img src="logocs-removebg-preview.png" alt="CS" class="ai-icon-img">
+        </div>
+    </div>
+
+    <!-- 2. Choice Modal (Voice vs Text) -->
+    <div id="ai-choice-modal" class="ai-modal">
+        <div class="ai-modal-content">
+            <button class="ai-close-btn" onclick="closeAIChoiceModal()">&times;</button>
+            <h3>Pilih Metode Interaksi</h3>
+            <p>Bagaimana Anda ingin bertanya kepada AI kami?</p>
+            <div class="ai-choice-grid">
+                <div class="ai-choice-card" onclick="startAIVoice()">
+                    <div class="choice-icon voice-pulse">
+                        <i data-feather="mic"></i>
+                    </div>
+                    <h4>Suara (Voice)</h4>
+                    <p>Ngobrol langsung seperti telepon</p>
+                </div>
+                <div class="ai-choice-card" onclick="startAIChat()">
+                    <div class="choice-icon chat-pulse">
+                        <i data-feather="message-square"></i>
+                    </div>
+                    <h4>Chat Teks</h4>
+                    <p>Kirim pesan tulis & baca</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Text Chat Window -->
+    <div id="ai-chat-window" class="ai-chat-window">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <img src="logoupb.png" alt="AI">
+                </div>
+                <div>
+                    <h4>Pelita AI</h4>
+                    <span class="status-online">Online</span>
+                </div>
+            </div>
+            <button class="chat-close-btn" onclick="closeAIChat()"><i data-feather="x"></i></button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <!-- Messages will appear here -->
+            <div class="message bot-message">
+                Halo! 👋 Ada yang bisa saya bantu seputar Universitas Pelita Bangsa?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ketik pertanyaan Anda..." onkeypress="handleChatKey(event)">
+            <button onclick="sendChatMessage()" id="send-btn"><i data-feather="send"></i></button>
+        </div>
+    </div>
+
+    <!-- ElevenLabs Placeholder (Injected via JS) -->
+    <div id="elevenlabs-container"></div>
+</body>
+
+</html>

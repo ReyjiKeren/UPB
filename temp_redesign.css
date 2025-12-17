@@ -1,0 +1,192 @@
+/* Redesigned Offer Modal */
+.promo-style {
+    max-width: 600px;
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid white;
+}
+
+.promo-content {
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+/* Ribbon */
+.offer-ribbon-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 150px;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.offer-ribbon {
+    position: absolute;
+    top: 30px;
+    left: -35px;
+    width: 200px;
+    background: #FFD700;
+    /* Gold/Yellow */
+    color: #000;
+    text-align: center;
+    font-weight: 800;
+    padding: 8px 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* Typography */
+.promo-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    color: #fff;
+}
+
+/* Discount Badge */
+.promo-discount-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    color: #FFD700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.percent {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.off-text {
+    display: flex;
+    flex-direction: column;
+    font-weight: 800;
+    font-size: 1.25rem;
+    text-align: left;
+    line-height: 1;
+}
+
+/* Countdown Timer */
+.countdown-timer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.timer-box {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 2rem;
+    font-weight: 700;
+    min-width: 80px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-family: monospace;
+}
+
+.timer-sep {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin-top: -5px;
+}
+
+/* Form Styling */
+.promo-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.promo-form .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.promo-form .form-group {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.promo-form input {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    padding: 0.85rem;
+}
+
+.promo-form input::placeholder {
+    color: #666;
+}
+
+.btn-warning {
+    background-color: #FFD700;
+    color: #000;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    border: none;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+.btn-warning:hover {
+    background-color: #FFC107;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+}
+
+.offer-close {
+    color: white;
+    opacity: 0.8;
+    z-index: 20;
+    font-size: 2rem;
+    top: 0.5rem;
+    right: 1rem;
+}
+
+.offer-close:hover {
+    color: red;
+    opacity: 1;
+}
+
+@media (max-width: 480px) {
+    .promo-content {
+        padding: 3rem 1.5rem;
+    }
+
+    .promo-title {
+        font-size: 2rem;
+    }
+
+    .percent {
+        font-size: 3rem;
+    }
+
+    .timer-box {
+        font-size: 1.5rem;
+        min-width: 60px;
+        padding: 0.5rem;
+    }
+
+    .promo-form .form-row {
+        flex-direction: column;
+    }
+}

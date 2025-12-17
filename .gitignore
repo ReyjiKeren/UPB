@@ -1,0 +1,13 @@
+
+# Secrets
+client_secret*.json
+*.env
+.env
+api_keys.js
+
+# Dependencies
+node_modules/
+
+# System
+.DS_Store
+Thumbs.db
