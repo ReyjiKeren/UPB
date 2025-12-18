@@ -1148,7 +1148,7 @@ section {
 /* News Cards */
 .news-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
 }
 
@@ -2339,6 +2339,44 @@ footer {
     transform: scale(1);
 }
 
+/* Gallery Tabs */
+.gallery-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.5rem;
+}
+
+.gallery-tab {
+    background: none;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.gallery-tab:hover {
+    color: var(--color-primary);
+    background: #f1f5f9;
+}
+
+.gallery-tab.active {
+    color: var(--color-primary);
+    background: #eff6ff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.gallery-view {
+    width: 100%;
+}
+
+
 .gallery-close {
     position: absolute;
     top: 1rem;
@@ -2391,8 +2429,34 @@ footer {
 
 /* --- Hybrid AI Assistant CSS --- */
 
+/* Special Offer Button */
+.special-offer-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 30px !important;
+    right: auto !important;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 10px 20px 10px 10px;
+    border-radius: 50px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: floatOffer 3s ease-in-out infinite;
+    overflow: hidden;
+    width: auto !important;
+    /* Prevent stretching */
+    max-width: 300px;
+}
+
 /* 1. Floating Button */
-.ai-float-btn { position: fixed; bottom: 30px; right: 30px; left: auto;
+.ai-float-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    left: auto;
     background: var(--color-primary);
     color: white;
     padding: 0.8rem 1.5rem;
@@ -2813,6 +2877,7 @@ footer {
         border-radius: 0;
     }
 }
+
 /* Voice Widget Close Button */
 .voice-widget-close {
     position: fixed;
@@ -2827,27 +2892,37 @@ footer {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     z-index: 10000;
     border: 2px solid white;
     transition: all 0.2s ease;
     animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .voice-widget-close:hover {
     transform: scale(1.1) rotate(90deg);
     background: #dc2626;
 }
+
 @keyframes pop-in {
-    0% { transform: scale(0); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* UI Fixes for Chat Header */
 .chat-header h4 {
     color: #ffffff !important;
     font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
 .chat-header .status-online {
     color: rgba(255, 255, 255, 0.9) !important;
 }
@@ -2879,11 +2954,13 @@ body.voice-active .ai-float-btn {
     justify-content: center;
     border-radius: 50%;
 }
+
 .ai-btn-content {
     justify-content: center;
     width: 100%;
     height: 100%;
 }
+
 .ai-icon-img {
     width: 45px;
     height: 45px;
@@ -2897,6 +2974,7 @@ body.voice-active .ai-float-btn {
     width: 80px !important;
     height: 80px !important;
 }
+
 .ai-icon-img {
     width: 60px !important;
     height: 60px !important;
@@ -2912,6 +2990,7 @@ body.voice-active .ai-float-btn {
     border: 2px solid rgba(255, 255, 255, 0.5) !important;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.3) !important;
 }
+
 .ai-icon-img {
     width: 75px !important;
     height: 75px !important;
@@ -2927,6 +3006,7 @@ body.voice-active .ai-float-btn {
     border: 2px solid rgba(255, 255, 255, 0.6) !important;
     box-shadow: 0 8px 32px 0 rgba(11, 60, 136, 0.2) !important;
 }
+
 .ai-icon-img {
     width: 75px !important;
     height: 75px !important;

@@ -64,6 +64,58 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Dynamic News ---
+    loadNews();
+
+    async function loadNews() {
+        const container = document.getElementById('news-container');
+        if (!container) return; // Only run on pages with news section
+
+        try {
+            const { data, error } = await _db
+                .from('news')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(3); // Show top 3 recent news
+
+            if (error) throw error;
+
+            console.log('News Loaded:', data); // Debugging
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1; text-align:center; padding:3rem; color:#64748b;">
+                        Belum ada berita yang diposting.
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = data.map(item => `
+                <article class="news-card fade-up visible">
+                    <div style="height:200px; background-image:url('${item.image_url}'); background-size:cover; background-position:center; background-color:#cbd5e1;" class="news-image"></div>
+                    <div class="news-content">
+                        <span class="news-date">
+                            ${new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                        <h4>${item.title}</h4>
+                        <p>${item.content.substring(0, 100)}...</p>
+                        <a href="news_detail.html?id=${item.id}" class="read-more" onclick="alert('Fitur detail belum tersedia'); return false;">Baca Selengkapnya &rarr;</a>
+                    </div>
+                </article>
+            `).join('');
+
+            // Re-trigger scroll animations if needed
+            if (typeof handleScrollAnimation === 'function') handleScrollAnimation();
+
+        } catch (err) {
+            console.error('Error loading news:', err);
+            container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:red; padding:2rem;">
+                <p>Gagal memuat berita.</p>
+                <small>${err.message || JSON.stringify(err)}</small>
+            </div>`;
+        }
+    }
+
     // --- Dynamic Hero Overlay Settings ---
     loadHeroSettings();
 
@@ -836,8 +888,76 @@ function closeGalleryModal() {
     }
 }
 
+// --- Public Gallery Logic ---
+async function loadGalleryPublic() {
+    const photoGrid = document.getElementById('public-gallery-grid-photo');
+    const videoGrid = document.getElementById('public-gallery-grid-video');
+    if (!photoGrid || !videoGrid) return;
+
+    try {
+        const { data, error } = await _db
+            .from('gallery')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Clear Content
+        photoGrid.innerHTML = '';
+        videoGrid.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            photoGrid.innerHTML = '<p style="text-align:center;width:100%;color:#999;">Belum ada foto.</p>';
+            videoGrid.innerHTML = '<p style="text-align:center;width:100%;color:#999;">Belum ada video.</p>';
+            return;
+        }
+
+        data.forEach(item => {
+            if (item.type === 'image') {
+                photoGrid.innerHTML += `
+                    <div style="cursor: pointer; overflow:hidden; border-radius:12px; height:200px;">
+                        <img src="${item.url}" alt="${item.title || 'Foto Galeri'}" 
+                             style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s;"
+                             onmouseover="this.style.transform='scale(1.1)'" 
+                             onmouseout="this.style.transform='scale(1.0)'">
+                    </div>
+                `;
+            } else if (item.type === 'video') {
+                videoGrid.innerHTML += `
+                    <div style="border-radius:12px; overflow:hidden; position:relative; padding-bottom:56.25%; height:0; background:#000;">
+                        <iframe src="https://www.youtube.com/embed/${item.url}" 
+                            style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" 
+                            allowfullscreen></iframe>
+                    </div>
+                `;
+            }
+        });
+
+    } catch (err) {
+        console.error('Gallery Load Error:', err);
+    }
+}
+
+window.switchGalleryTab = function (type) {
+    const tabs = document.querySelectorAll('.gallery-tab');
+    const views = document.querySelectorAll('.gallery-view');
+
+    tabs.forEach(t => t.classList.remove('active'));
+    views.forEach(v => v.style.display = 'none');
+
+    if (type === 'photo') {
+        tabs[0].classList.add('active');
+        document.getElementById('gallery-content-photo').style.display = 'block';
+    } else {
+        tabs[1].classList.add('active');
+        document.getElementById('gallery-content-video').style.display = 'block';
+    }
+};
+
 // Close Gallery Modal when clicking outside (Event Delegation or Direct Attach)
 document.addEventListener('DOMContentLoaded', () => {
+    loadGalleryPublic(); // Load on start
+
     const galleryModal = document.getElementById('gallery-modal');
     if (galleryModal) {
         galleryModal.addEventListener('click', function (e) {

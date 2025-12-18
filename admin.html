@@ -189,7 +189,37 @@
 
         /* --- Forms --- */
         .form-group {
-            margin-bottom: 0;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .form-control,
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            font-family: inherit;
+        }
+
+        .form-control:focus,
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.1);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 100px;
         }
 
         .search-box {
@@ -305,6 +335,65 @@
         .btn-outline:hover {
             background: #f8fafc;
             color: #0f172a;
+        }
+
+        /* --- Drag & Drop Zone --- */
+        .drop-zone {
+            width: 100%;
+            height: 200px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #64748b;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone--over {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+            color: var(--primary);
+        }
+
+        .drop-zone__input {
+            display: none;
+        }
+
+        .drop-zone__thumb {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #cccccc;
+            background-size: cover;
+            background-position: center;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .drop-zone__thumb::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 5px 0;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.75);
+            font-size: 14px;
+            text-align: center;
         }
 
         /* Login Card */
@@ -566,6 +655,57 @@
                 </div>
             </div>
 
+            <!-- News Management Card -->
+            <div class="card" style="margin: 2rem 0;">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="background: #fdf2f8; padding: 6px; border-radius: 6px; color: #db2777;">
+                            <i data-feather="layout" style="width: 18px; height: 18px;"></i>
+                        </span>
+                        <h3>Portal Berita Kampus</h3>
+                    </div>
+                    <button onclick="openAddNewsModal()" class="btn btn-primary btn-sm"
+                        style="background: #db2777; border-color: #db2777;">
+                        <i data-feather="plus-circle"></i> Tambah Berita
+                    </button>
+                </div>
+
+                <div style="padding: 2rem;">
+                    <!-- News Grid -->
+                    <div id="admin-news-list"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                        <div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+                            <i data-feather="loader" class="spin"></i> Memuat berita...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Management Card -->
+            <div class="card" style="margin: 2rem 0;">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="background: #fff7ed; padding: 6px; border-radius: 6px; color: #f97316;">
+                            <i data-feather="image" style="width: 18px; height: 18px;"></i>
+                        </span>
+                        <h3>Manajemen Galeri Kampus</h3>
+                    </div>
+                    <button onclick="openGalleryAdminModal()" class="btn btn-primary btn-sm"
+                        style="background: #f97316; border-color: #f97316;">
+                        <i data-feather="plus-circle"></i> Tambah Item
+                    </button>
+                </div>
+
+                <div style="padding: 2rem;">
+                    <div id="admin-gallery-list"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
+                        <div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+                            <i data-feather="loader" class="spin"></i> Memuat galeri...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Leads Card -->
             <div class="card">
                 <div class="card-header">
@@ -660,6 +800,99 @@
         </div>
     </div>
 
+    <!-- News Modal -->
+    <div id="news-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Berita Baru</h3>
+                <button class="modal-close" onclick="closeNewsModal()"><i data-feather="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="news-form" onsubmit="handleNewsSubmitV2(event)">
+                    <div class="form-group">
+                        <label>Judul Berita</label>
+                        <input type="text" id="news-title" class="form-input"
+                            placeholder="Contoh: Penerimaan Mahasiswa Baru 2025" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Gambar Header</label>
+                        <div class="drop-zone" id="news-drop-zone">
+                            <span class="drop-zone__prompt">
+                                <i data-feather="image"
+                                    style="width: 32px; height: 32px; margin-bottom: 8px; display: block; margin: 0 auto 8px;"></i>
+                                Drag & Drop gambar di sini atau klik untuk upload
+                            </span>
+                            <input type="file" id="news-image-file" class="drop-zone__input" accept="image/*">
+                            <!-- Hidden input to store Base64 result -->
+                            <input type="hidden" id="news-image-base64">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Isi Berita</label>
+                        <textarea id="news-content" class="form-input" rows="5"
+                            placeholder="Tulis isi berita di sini..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;">Publikasikan
+                        Berita</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <!-- Gallery Upload Modal -->
+    <div id="gallery-admin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah ke Galeri</h3>
+                <button class="modal-close" onclick="closeGalleryAdminModal()"><i data-feather="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="gallery-form" onsubmit="handleGallerySubmit(event)">
+                    <div class="form-group">
+                        <label>Tipe Konten</label>
+                        <select id="gallery-type" class="form-input" onchange="toggleGalleryInput()" required>
+                            <option value="image">📸 Foto</option>
+                            <option value="video">🎥 Video (YouTube)</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Input -->
+                    <div class="form-group" id="gallery-input-image">
+                        <label>Upload Foto</label>
+                        <div class="drop-zone" id="gallery-drop-zone">
+                            <span class="drop-zone__prompt">
+                                <i data-feather="image"
+                                    style="width: 32px; height: 32px; margin-bottom: 8px; display: block; margin: 0 auto 8px;"></i>
+                                Drag & Drop gambar di sini
+                            </span>
+                            <input type="file" id="gallery-file" class="drop-zone__input" accept="image/*">
+                            <input type="hidden" id="gallery-base64">
+                        </div>
+                    </div>
+
+                    <!-- Video Input -->
+                    <div class="form-group" id="gallery-input-video" style="display: none;">
+                        <label>Link YouTube</label>
+                        <input type="url" id="gallery-video-url" class="form-input"
+                            placeholder="https://www.youtube.com/watch?v=...">
+                        <small style="color: #64748b;">Pastikan link valid dari YouTube.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Judul / Caption (Opsional)</label>
+                        <input type="text" id="gallery-title" class="form-input" placeholder="Keterangan singkat...">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"
+                        style="width:100%; margin-top:1rem; background-color: #f97316; border-color: #f97316;">Upload ke
+                        Galeri</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Simple Auth & Supabase Setup
         const loginForm = document.getElementById('login-form');
@@ -696,6 +929,104 @@
             dashboardSection.style.display = 'block';
             loadSettings();
             loadLeads();
+            fetchAdminNews(); // Load News
+        }
+
+        // --- News Management Logic ---
+        async function fetchAdminNews() {
+            const container = document.getElementById('admin-news-list');
+
+            const { data, error } = await _db
+                .from('news')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error(error);
+                container.innerHTML = '<p style="color:red; text-align:center;">Gagal memuat berita.</p>';
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1; text-align:center; padding:2rem; border:2px dashed #e2e8f0; border-radius:12px;">
+                        <p style="color:#64748b;">Belum ada berita yang diposting.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = data.map(item => `
+                <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s;">
+                    <div style="height:140px; background-image:url('${item.image_url}'); background-size:cover; background-position:center; background-color:#cbd5e1;"></div>
+                    <div style="padding:1.25rem; flex:1; display:flex; flex-direction:column;">
+                        <div style="font-size:0.75rem; color:#64748b; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.25rem;">
+                            <i data-feather="calendar" style="width:12px;"></i>
+                            ${new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
+                        <h4 style="margin:0 0 0.5rem; font-size:1rem; flex:1; color:#1e293b; line-height:1.4;">${item.title}</h4>
+                        <button onclick="deleteNews(${item.id})" class="btn-outline btn-sm" style="align-self:start; color:#ef4444; border-color:#fee2e2; margin-top:0.5rem;">
+                            <i data-feather="trash-2" style="width:14px;"></i> Hapus
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            if (typeof feather !== 'undefined') feather.replace();
+        }
+
+        function openAddNewsModal() {
+            document.getElementById('news-modal').classList.add('active');
+        }
+
+        function closeNewsModal() {
+            document.getElementById('news-modal').classList.remove('active');
+            document.getElementById('news-form').reset();
+        }
+
+        async function handleNewsSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = 'Menyimpan...';
+            btn.disabled = true;
+
+            const title = document.getElementById('news-title').value;
+            const image = document.getElementById('news-image').value;
+            const content = document.getElementById('news-content').value;
+
+            try {
+                const { error } = await _db.from('news').insert([{
+                    title: title,
+                    image_url: image,
+                    content: content
+                }]);
+
+                if (error) throw error;
+
+                showToast('Berita berhasil dipublikasikan!', 'success');
+                closeNewsModal();
+                fetchAdminNews(); // Refresh list
+
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal menyimpan berita: ' + err.message, 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteNews(id) {
+            if (!confirm('Yakin ingin menghapus berita ini secara permanen?')) return;
+
+            try {
+                const { error } = await _db.from('news').delete().eq('id', id);
+                if (error) throw error;
+                fetchAdminNews();
+                showToast('Berita dihapus.', 'info');
+            } catch (err) {
+                showToast('Gagal hapus: ' + err.message, 'error');
+            }
         }
 
         // --- Settings Logic (Supabase) ---
@@ -1104,6 +1435,306 @@
                 setTimeout(() => toast.remove(), 400);
             }, 4000);
         }
+
+        // --- V2 News Logic with Drag & Drop ---
+        async function handleNewsSubmitV2(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = 'Menyimpan...';
+            btn.disabled = true;
+
+            const title = document.getElementById('news-title').value;
+            const content = document.getElementById('news-content').value;
+
+            try {
+                // Determine Image Source: File Upload (Base64)
+                let imagePayload = document.getElementById('news-image-base64').value;
+
+                // Fallback validation
+                if (!imagePayload) {
+                    throw new Error('Harap upload gambar header terlebih dahulu!');
+                }
+
+                const { error } = await _db.from('news').insert([{
+                    title: title,
+                    image_url: imagePayload,
+                    content: content
+                }]);
+
+                if (error) throw error;
+
+                showToast('Berita berhasil dipublikasikan!', 'success');
+                closeNewsModal();
+                fetchAdminNews(); // Refresh list
+
+                // Reset preview
+                const dropZone = document.getElementById('news-drop-zone');
+                if (dropZone) {
+                    const thumb = dropZone.querySelector('.drop-zone__thumb');
+                    if (thumb) thumb.remove();
+                }
+                const hiddenInput = document.getElementById('news-image-base64');
+                if (hiddenInput) hiddenInput.value = '';
+
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal menyimpan berita: ' + err.message, 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- Drag & Drop Image Logic ---
+        function initializeDropZone() {
+            const dropZoneElement = document.getElementById('news-drop-zone');
+            if (!dropZoneElement) return;
+
+            const inputElement = dropZoneElement.querySelector('.drop-zone__input');
+            const hiddenInput = document.getElementById('news-image-base64');
+
+            // Click to trigger input
+            dropZoneElement.addEventListener('click', () => {
+                inputElement.click();
+            });
+
+            inputElement.addEventListener('change', (e) => {
+                if (inputElement.files.length) {
+                    processFile(inputElement.files[0], dropZoneElement, hiddenInput);
+                }
+            });
+
+            // Drag Events
+            dropZoneElement.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZoneElement.classList.add('drop-zone--over');
+            });
+
+            ['dragleave', 'dragend'].forEach(type => {
+                dropZoneElement.addEventListener(type, () => {
+                    dropZoneElement.classList.remove('drop-zone--over');
+                });
+            });
+
+            dropZoneElement.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZoneElement.classList.remove('drop-zone--over');
+
+                if (e.dataTransfer.files.length) {
+                    inputElement.files = e.dataTransfer.files; // Update input files
+                    processFile(e.dataTransfer.files[0], dropZoneElement, hiddenInput);
+                }
+            });
+        }
+
+        function processFile(file, dropZone, hiddenInput) {
+            if (!file.type.startsWith('image/')) {
+                alert('File harus berupa gambar!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                // Resize Image before setting
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800; // Limit size
+                    const scaleSize = MAX_WIDTH / img.width;
+                    const newWidth = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                    const newHeight = (img.width > MAX_WIDTH) ? img.height * scaleSize : img.height;
+
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7); // Compress
+
+                    // Update UI
+                    hiddenInput.value = resizedBase64;
+
+                    // Remove existing thumb if any
+                    const existingThumb = dropZone.querySelector('.drop-zone__thumb');
+                    if (existingThumb) existingThumb.remove();
+
+                    // Create Thumb (Preview)
+                    const thumbnailElement = document.createElement('div');
+                    thumbnailElement.classList.add('drop-zone__thumb');
+                    thumbnailElement.dataset.label = file.name;
+                    thumbnailElement.style.backgroundImage = `url('${resizedBase64}')`;
+                    dropZone.appendChild(thumbnailElement);
+                };
+            };
+        }
+
+        // Initialize Drag & Drop
+        initializeDropZone();
+
+        // --- Gallery Management Logic ---
+        const galleryModal = document.getElementById('gallery-admin-modal');
+        const galleryForm = document.getElementById('gallery-form');
+
+        function openGalleryAdminModal() {
+            galleryModal.classList.add('active');
+            // Init dropzone for gallery if not done
+            initGalleryDropZone();
+        }
+
+        function closeGalleryAdminModal() {
+            galleryModal.classList.remove('active');
+            galleryForm.reset();
+            document.getElementById('gallery-drop-zone').querySelector('.drop-zone__thumb')?.remove();
+            document.getElementById('gallery-input-image').style.display = 'block';
+            document.getElementById('gallery-input-video').style.display = 'none';
+        }
+
+        function toggleGalleryInput() {
+            const type = document.getElementById('gallery-type').value;
+            if (type === 'image') {
+                document.getElementById('gallery-input-image').style.display = 'block';
+                document.getElementById('gallery-input-video').style.display = 'none';
+            } else {
+                document.getElementById('gallery-input-image').style.display = 'none';
+                document.getElementById('gallery-input-video').style.display = 'block';
+            }
+        }
+
+        function initGalleryDropZone() {
+            const dropZone = document.getElementById('gallery-drop-zone');
+            const fileInput = document.getElementById('gallery-file');
+            const hiddenInput = document.getElementById('gallery-base64');
+
+            if (dropZone.dataset.init === 'true') return; // Prevent double init
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length) processFile(fileInput.files[0], dropZone, hiddenInput);
+            });
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drop-zone--over');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drop-zone--over'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drop-zone--over');
+                if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0], dropZone, hiddenInput);
+            });
+            dropZone.dataset.init = 'true';
+        }
+
+        async function handleGallerySubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('gallery-type').value;
+            const title = document.getElementById('gallery-title').value;
+            const submitBtn = galleryForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Mengupload...';
+
+            try {
+                let url = '';
+                if (type === 'image') {
+                    url = document.getElementById('gallery-base64').value;
+                    if (!url) throw new Error('Harap pilih foto terlebih dahulu.');
+                } else {
+                    url = document.getElementById('gallery-video-url').value;
+                    if (!url) throw new Error('Harap masukkan link YouTube.');
+
+                    // Simple YouTube ID extraction
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                    const match = url.match(regExp);
+                    if (match && match[2].length === 11) {
+                        url = match[2]; // Store only ID
+                    } else {
+                        throw new Error('Link YouTube tidak valid.');
+                    }
+                }
+
+                const { error } = await _db.from('gallery').insert([{
+                    type: type,
+                    title: title,
+                    url: url
+                }]);
+
+                if (error) throw error;
+
+                showToast('Item galeri berhasil ditambahkan!', 'success');
+                closeGalleryAdminModal();
+                loadGalleryItems(); // Refresh list
+
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal: ' + err.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText;
+            }
+        }
+
+        async function loadGalleryItems() {
+            const container = document.getElementById('admin-gallery-list');
+            try {
+                const { data, error } = await _db
+                    .from('gallery')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#ccc;padding:2rem;">Belum ada item galeri.</div>';
+                    return;
+                }
+
+                container.innerHTML = data.map(item => {
+                    let mediaContent = '';
+                    if (item.type === 'image') {
+                        mediaContent = `<div style="height:150px; background-image:url('${item.url}'); background-size:cover; background-position:center; border-radius:8px;"></div>`;
+                    } else {
+                        mediaContent = `<div style="height:150px; background:#000; display:flex; align-items:center; justify-content:center; border-radius:8px; color:white;"><i data-feather="play-circle"></i> Video</div>`;
+                    }
+
+                    return `
+                        <div style="background:white; border:1px solid #e2e8f0; border-radius:12px; padding:10px; position:relative;">
+                            ${mediaContent}
+                            <div style="margin-top:10px;">
+                                <div style="font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.title || 'Tanpa Judul'}</div>
+                                <div style="font-size:0.8rem; color:#64748b; text-transform:capitalize;">${item.type}</div>
+                            </div>
+                            <button onclick="deleteGalleryItem(${item.id})" style="position:absolute; top:5px; right:5px; background:white; border:none; border-radius:50%; width:30px; height:30px; box-shadow:0 2px 5px rgba(0,0,0,0.2); cursor:pointer; color:#ef4444; display:flex; align-items:center; justify-content:center;">
+                                <i data-feather="trash-2" style="width:16px;"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+                feather.replace();
+
+            } catch (err) {
+                console.error('Load Gallery Error:', err);
+                container.innerHTML = 'Gagal memuat galeri.';
+            }
+        }
+
+        async function deleteGalleryItem(id) {
+            if (!confirm('Hapus item ini dari galeri?')) return;
+            try {
+                const { error } = await _db.from('gallery').delete().eq('id', id);
+                if (error) throw error;
+                showToast('Item berhasil dihapus.', 'success');
+                loadGalleryItems();
+            } catch (err) {
+                showToast('Gagal menghapus: ' + err.message, 'error');
+            }
+        }
+
+        // Load initially
+        loadGalleryItems();
     </script>
 </body>
 
