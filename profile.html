@@ -533,6 +533,9 @@
                 if (newAvatar) {
                     localStorage.setItem('user_custom_avatar', newAvatar);
                 }
+                if (newName) {
+                    localStorage.setItem('user_custom_name', newName);
+                }
 
                 // 2. Optimistic UI Update
                 document.getElementById('user-name').innerText = newName;
@@ -595,29 +598,33 @@
             const meta = user.user_metadata;
 
             // Display Google User Info
-            // --- MERGE LOGIC: Check for Pending Lead Phone & Name ---
+            // --- MERGE LOGIC: Check for Persistent & Pending Name ---
             const pendingPhone = localStorage.getItem('pending_lead_phone');
             const pendingName = localStorage.getItem('pending_lead_name');
+            let finalName = localStorage.getItem('user_custom_name'); // Persistent Local Name
 
-            // Override Name if available from registration
+            // Migration: pending -> custom (permanent)
             if (pendingName) {
-                console.log('Using Pending Name:', pendingName);
-                nameEl.innerText = pendingName;
+                finalName = pendingName;
+                localStorage.setItem('user_custom_name', pendingName);
+                localStorage.removeItem('pending_lead_name'); // Clear pending
 
-                // Update Metadata async to persist for future logins
-                _db.auth.updateUser({ data: { full_name: pendingName } });
+                // Sync to Supabase Metadata (Background)
+                _db.auth.updateUser({ data: { full_name: finalName } });
+            }
 
-                // Also update 'leads' table name if phone matches
-                if (pendingPhone) {
-                    _db.from('leads').update({ name: pendingName }).eq('phone', pendingPhone);
-                }
-
-                // Clear after using
-                localStorage.removeItem('pending_lead_name');
+            // Display Name Priority: Local Custom > Google Meta > Email
+            if (finalName) {
+                nameEl.innerText = finalName;
+            } else if (meta.full_name) {
+                nameEl.innerText = meta.full_name;
             } else {
-                // Standard Google Name Fallback
-                if (meta.full_name) nameEl.innerText = meta.full_name;
-                else nameEl.innerText = user.email.split('@')[0];
+                nameEl.innerText = user.email.split('@')[0];
+            }
+
+            // Sync Leads Table Name if phone matches
+            if (pendingPhone && finalName) {
+                _db.from('leads').update({ name: finalName }).eq('phone', pendingPhone);
             }
 
             emailEl.innerText = user.email;
