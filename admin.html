@@ -1154,7 +1154,8 @@
         }
 
         async function deleteNews(id) {
-            if (!confirm('Yakin ingin menghapus berita ini secara permanen?')) return;
+            const confirmed = await showConfirm('Yakin ingin menghapus berita ini secara permanen?');
+            if (!confirmed) return;
 
             try {
                 const { error } = await _db.from('news').delete().eq('id', id);

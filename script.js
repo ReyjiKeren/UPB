@@ -34,18 +34,34 @@ document.addEventListener('DOMContentLoaded', () => {
             if (profileEl) {
                 profileEl.style.display = 'flex';
                 const meta = session.user.user_metadata;
-                const pendingName = localStorage.getItem('pending_lead_name');
 
-                // Set Name
-                if (pendingName) {
-                    userName.innerText = pendingName;
-                    // We don't clear it here, let profile.html allow it to sync to DB first if user goes there
-                    // Or we just leave it for session consistency until full refresh
-                } else if (meta.full_name) {
-                    userName.innerText = meta.full_name.split(' ')[0]; // Show First Name
-                } else {
-                    userName.innerText = session.user.email.split('@')[0];
-                }
+                // 1. Default: Email Prefix
+                let finalName = session.user.email.split('@')[0];
+
+                // 2. Auth Meta Check
+                if (meta.full_name) finalName = meta.full_name.split(' ')[0];
+
+                // 3. LocalStorage Override (Instant Update)
+                const storedName = localStorage.getItem('pending_lead_name');
+                if (storedName) finalName = storedName;
+
+                // 4. DB Check (Source of Truth) - Run quietly so it doesn't block UI too long?
+                // We'll set what we have first, then update if DB returns different
+                userName.innerText = finalName;
+
+                _db.from('leads').select('name').eq('email', session.user.email).maybeSingle()
+                    .then(({ data }) => {
+                        if (data && data.name) {
+                            // Update UI if DB has a name
+                            userName.innerText = data.name.split(' ')[0]; // Still use first name for Navbar space?
+                            // User asked specifically for "nama dari tabel lead". I'll use the name.
+                            // If name is "Ridho Anjay", "Ridho" is usually better for navbar.
+                            // User screenshot shows "Ridho" in profile (which might be the full name there).
+                            // I will use `data.name` directly but maybe shorten it if it's super long.
+                            // Actually, I'll trust the user's DB name.
+                            if (data.name.trim().length > 0) userName.innerText = data.name.split(' ')[0];
+                        }
+                    });
 
                 // Set Avatar
                 const customAvatar = localStorage.getItem('user_custom_avatar');
@@ -57,10 +73,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.innerText)}&background=random`;
                 }
             }
+
+            // Hide Admissions/CTA Section if Logged In
+            const ctaSection = document.getElementById('admissions');
+            if (ctaSection) ctaSection.style.display = 'none';
+
         } else {
             // Not Logged In
             if (loginBtn) loginBtn.parentElement.style.display = 'block';
             if (profileEl) profileEl.style.display = 'none';
+
+            // Show Admissions/CTA Section
+            const ctaSection = document.getElementById('admissions');
+            if (ctaSection) ctaSection.style.display = '';
         }
     }
 
@@ -90,7 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            container.innerHTML = data.map(item => `
+            // Store data globally for modal access
+            window.latestNewsData = data;
+
+            container.innerHTML = data.map((item, index) => `
                 <article class="news-card fade-up visible">
                     <div style="height:200px; background-image:url('${item.image_url}'); background-size:cover; background-position:center; background-color:#cbd5e1;" class="news-image"></div>
                     <div class="news-content">
@@ -99,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                         <h4>${item.title}</h4>
                         <p>${item.content.substring(0, 100)}...</p>
-                        <a href="news_detail.html?id=${item.id}" class="read-more" onclick="alert('Fitur detail belum tersedia'); return false;">Baca Selengkapnya &rarr;</a>
+                        <a href="#" class="read-more" onclick="openNewsDetail(${index}); return false;">Baca Selengkapnya &rarr;</a>
                     </div>
                 </article>
             `).join('');
@@ -115,6 +143,37 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         }
     }
+
+    // --- News Modal Logic ---
+    window.openNewsDetail = function (index) {
+        const item = window.latestNewsData[index];
+        if (!item) return;
+
+        const modal = document.getElementById('news-modal');
+        document.getElementById('news-modal-title').innerText = item.title;
+        document.getElementById('news-modal-date').innerText = new Date(item.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        document.getElementById('news-modal-content').innerText = item.content; // Use innerText for safety, or innerHTML if trusted
+
+        const imgEl = document.getElementById('news-modal-img');
+        imgEl.style.backgroundImage = `url('${item.image_url}')`;
+
+        modal.classList.add('active'); // active class handles display:flex
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    };
+
+    window.closeNewsModal = function () {
+        const modal = document.getElementById('news-modal');
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    };
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('news-modal');
+        if (e.target === modal) {
+            closeNewsModal();
+        }
+    });
 
     // --- Dynamic Hero Overlay Settings ---
     loadHeroSettings();
