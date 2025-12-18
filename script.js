@@ -2,15 +2,24 @@
    Universitas Pelita Bangsa - Client-side Logic
 */
 
-document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Supabase Config ---
-    const supabaseUrl = 'https://oypmvarhedxcwrclzpup.supabase.co';
-    const supabaseKey = 'sb_publishable_goV8IJgbjqbFDH30A36X2A_PMAS_6Ao'; // Public Anon Key
-    const _db = supabase.createClient(supabaseUrl, supabaseKey);
+// --- Supabase Config (Global) ---
+const supabaseUrl = 'https://oypmvarhedxcwrclzpup.supabase.co';
+const supabaseKey = 'sb_publishable_goV8IJgbjqbFDH30A36X2A_PMAS_6Ao'; // Public Anon Key
+const _db = supabase.createClient(supabaseUrl, supabaseKey);
+
+document.addEventListener('DOMContentLoaded', () => {
 
     // --- Check Auth for Navbar ---
     checkNavbarAuth();
+
+    // --- Environment Check for OAuth ---
+    if (window.location.protocol === 'file:') {
+        console.warn('Google Login requires a local server (http://localhost:port). File protocol detected.');
+        setTimeout(() => {
+            alert('PENTING: Fitur Login Google TIDAK BERFUNGSI jika file dibuka langsung (mode file://).\n\nMohon buka website ini menggunakan Local Server (misalnya "Live Server" di VS Code) agar login bisa berjalan normal.');
+        }, 1000);
+    }
 
     async function checkNavbarAuth() {
         const { data: { session } } = await _db.auth.getSession();
@@ -25,14 +34,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (profileEl) {
                 profileEl.style.display = 'flex';
                 const meta = session.user.user_metadata;
+                const pendingName = localStorage.getItem('pending_lead_name');
 
                 // Set Name
-                if (meta.full_name) userName.innerText = meta.full_name.split(' ')[0]; // Show First Name
-                else userName.innerText = session.user.email.split('@')[0];
+                if (pendingName) {
+                    userName.innerText = pendingName;
+                    // We don't clear it here, let profile.html allow it to sync to DB first if user goes there
+                    // Or we just leave it for session consistency until full refresh
+                } else if (meta.full_name) {
+                    userName.innerText = meta.full_name.split(' ')[0]; // Show First Name
+                } else {
+                    userName.innerText = session.user.email.split('@')[0];
+                }
 
                 // Set Avatar
-                if (meta.avatar_url) userAvatar.src = meta.avatar_url;
-                else userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.innerText)}&background=random`;
+                const customAvatar = localStorage.getItem('user_custom_avatar');
+                if (customAvatar) {
+                    userAvatar.src = customAvatar;
+                } else if (meta.avatar_url) {
+                    userAvatar.src = meta.avatar_url;
+                } else {
+                    userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName.innerText)}&background=random`;
+                }
             }
         } else {
             // Not Logged In
@@ -202,8 +225,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('WhatsApp Logic Error:', waErr);
                 }
 
-                // 3.5 Save Phone to LocalStorage for Email Merge on Profile Page
+                // 3.5 Save Phone & Name to LocalStorage for Merge/Display
                 localStorage.setItem('pending_lead_phone', phone);
+                localStorage.setItem('pending_lead_name', name); // Save Name
 
                 // 4. Trigger Google Auth
                 const { error: authError } = await _db.auth.signInWithOAuth({
@@ -266,8 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('WhatsApp Error:', waErr);
                 }
 
-                // 3.5 Save Phone for Merge
+                // 3.5 Save Phone & Name for Merge
                 localStorage.setItem('pending_lead_phone', phone);
+                localStorage.setItem('pending_lead_name', name); // Save Name
 
                 // 4. Trigger Google Auth
                 const { error: authError } = await _db.auth.signInWithOAuth({
@@ -1017,4 +1042,30 @@ function removeTypingIndicator(id) {
 
 function handleChatKey(e) {
     if (e.key === 'Enter') sendChatMessage();
+}
+
+/* Login Check for Promo Modal */
+async function checkLoginState() {
+    const { data: { session } } = await _db.auth.getSession();
+
+    if (session) {
+        // Already logged in locally -> Redirect to Profile
+        showToast('Anda sudah login! Mengalihkan ke profil...', 'success');
+        setTimeout(() => {
+            window.location.href = 'profile.html';
+        }, 1500);
+    } else {
+        // Not logged in -> Trigger Google Account Chooser directly
+        showToast('Membuka pilihan akun Google...', 'info');
+        const { error } = await _db.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + '/profile.html'
+            }
+        });
+        if (error) {
+            console.error('Login Error:', error);
+            showToast('Gagal membuka login Google.', 'error');
+        }
+    }
 }

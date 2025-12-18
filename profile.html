@@ -457,14 +457,36 @@
                     style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;">
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">Foto Profil
-                    (Link/URL)</label>
-                <input type="text" id="edit-avatar-input" placeholder="https://..."
-                    style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.25rem;">Biarkan kosong
-                    untuk menggunakan inisial.</small>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem;">Foto
+                Profil</label>
+
+            <!-- Drag & Drop Zone -->
+            <div id="drop-zone"
+                style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 2rem; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;"
+                onclick="document.getElementById('file-upload').click()">
+
+                <input type="file" id="file-upload" accept="image/*" style="display: none;"
+                    onchange="handleFileSelect(this)">
+
+                <div id="drop-zone-content">
+                    <i data-feather="upload-cloud"
+                        style="width: 32px; height: 32px; color: #94a3b8; margin-bottom: 0.5rem;"></i>
+                    <p style="margin: 0; color: #64748b; font-size: 0.9rem;">Drag & Drop gambar di sini</p>
+                    <p style="margin: 0; color: #94a3b8; font-size: 0.8rem;">atau klik untuk pilih</p>
+                </div>
+
+                <!-- P r e v i e w -->
+                <img id="avatar-preview" src=""
+                    style="display: none; width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <button id="remove-preview" onclick="removePreview(event)"
+                    style="display: none; position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>
             </div>
+
+            <!-- Hidden Input to store the Base64 String for saving -->
+            <input type="hidden" id="edit-avatar-input">
+
+            <small style="color: #64748b; font-size: 0.8rem; display: block; margin-top: 0.5rem;">Maksimal 2MB. Format:
+                JPG, PNG.</small>
 
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                 <button onclick="closeEditProfileModal()"
@@ -507,12 +529,23 @@
             if (!newName) return showToast('Nama tidak boleh kosong', 'error');
 
             try {
-                // Prepare Update Object
+                // 1. Save to LocalStorage (Immediate Persistence for this device)
+                if (newAvatar) {
+                    localStorage.setItem('user_custom_avatar', newAvatar);
+                }
+
+                // 2. Optimistic UI Update
+                document.getElementById('user-name').innerText = newName;
+                const avatarImg = document.getElementById('user-avatar');
+                if (newAvatar) avatarImg.src = newAvatar;
+
+                closeEditProfileModal();
+                showToast('Profil berhasil diperbarui!', 'success');
+
+                // 3. Background Sync to DB (Best Effort)
                 const updateData = { name: newName };
-                // Optimization: In real scenario, we need an 'avatar_url' column in 'leads' table.
-                // We will attempt to send it. If DB ignores it (no column), fine.
-                // If it errors, we might need to handle it.
-                // For now, let's include it to support valid implementations.
+                // Only send avatar to DB if it's not too huge (which resize logic handles) or if DB supports it.
+                // We'll try. If it fails, we catch it silently because LocalStorage already saved it.
                 if (newAvatar) updateData.avatar_url = newAvatar;
 
                 const { error } = await _db
@@ -520,33 +553,22 @@
                     .update(updateData)
                     .eq('email', userEmail);
 
-                if (error) {
-                    console.error('Update Error:', error);
-                    // Fallback: If error is due to missing column, try updating ONLY name
-                    if (error.code === '42703') { // Undefined column
-                        console.warn('Retrying update with Name only...');
-                        await _db.from('leads').update({ name: newName }).eq('email', userEmail);
-                    } else {
-                        throw error;
+                // Also update User Metadata
+                await _db.auth.updateUser({
+                    data: {
+                        full_name: newName,
+                        // Update metadata avatar only if small enough
+                        avatar_url: (newAvatar && newAvatar.length < 4000) ? newAvatar : undefined
                     }
+                });
+
+                if (error) {
+                    console.warn('DB Update Limit/Error (saved locally):', error);
                 }
-
-                // Update UI Success
-                document.getElementById('user-name').innerText = newName;
-
-                const avatarImg = document.getElementById('user-avatar');
-                if (newAvatar) {
-                    avatarImg.src = newAvatar;
-                } else {
-                    avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`;
-                }
-
-                showToast('Profil berhasil diperbarui!', 'success');
-                closeEditProfileModal();
 
             } catch (e) {
-                console.error(e);
-                showToast('Gagal menyimpan. Cek koneksi.', 'error');
+                console.error('Save Logic Error:', e);
+                // We don't show error to user because we already saved locally
             }
         }
 
@@ -573,16 +595,44 @@
             const meta = user.user_metadata;
 
             // Display Google User Info
-            if (meta.full_name) nameEl.innerText = meta.full_name;
-            else nameEl.innerText = user.email.split('@')[0];
+            // --- MERGE LOGIC: Check for Pending Lead Phone & Name ---
+            const pendingPhone = localStorage.getItem('pending_lead_phone');
+            const pendingName = localStorage.getItem('pending_lead_name');
+
+            // Override Name if available from registration
+            if (pendingName) {
+                console.log('Using Pending Name:', pendingName);
+                nameEl.innerText = pendingName;
+
+                // Update Metadata async to persist for future logins
+                _db.auth.updateUser({ data: { full_name: pendingName } });
+
+                // Also update 'leads' table name if phone matches
+                if (pendingPhone) {
+                    _db.from('leads').update({ name: pendingName }).eq('phone', pendingPhone);
+                }
+
+                // Clear after using
+                localStorage.removeItem('pending_lead_name');
+            } else {
+                // Standard Google Name Fallback
+                if (meta.full_name) nameEl.innerText = meta.full_name;
+                else nameEl.innerText = user.email.split('@')[0];
+            }
 
             emailEl.innerText = user.email;
 
-            if (meta.avatar_url) avatarImg.src = meta.avatar_url;
-            else avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameEl.innerText)}&background=random`;
+            // --- Custom Avatar Logic ---
+            const customAvatar = localStorage.getItem('user_custom_avatar');
+            if (customAvatar) {
+                avatarImg.src = customAvatar;
+            } else if (meta.avatar_url) {
+                avatarImg.src = meta.avatar_url;
+            } else {
+                avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nameEl.innerText)}&background=random`;
+            }
 
             // --- MERGE LOGIC: Check for Pending Lead Phone ---
-            const pendingPhone = localStorage.getItem('pending_lead_phone');
             if (pendingPhone) {
                 console.log('Merging Email to Lead:', pendingPhone);
                 try {
@@ -698,13 +748,15 @@
                 } else {
                     // Not found in leads table (New User via Google)
                     statusContainer.innerHTML = `
-                         <div class="info-card" style="border-left-color: #F59E0B;">
-                            <span class="info-label">Status</span>
-                            <div class="info-value" style="color: #D97706;">Belum Lengkap</div>
-                        </div>
-                        <p style="font-size:0.9rem; color:#666; margin-bottom:1rem;">Data Anda belum lengkap di sistem akademik kami. Kode voucher belum tersedia.</p>
-                        <button onclick="competeData()" class="btn btn-primary" style="width:100%">Lengkapi Data Sekarang</button>
-                    `;
+                          <div class="info-card" style="border-left-color: #10B981;">
+                             <span class="info-label">Status Akun</span>
+                             <div class="info-value" style="color: #059669;">Aktif</div>
+                         </div>
+                         <div style="margin-top:1.5rem; text-align:center;">
+                            <p style="font-size:0.95rem; color:#475569; margin-bottom:1rem;">Halo! Akun Anda sudah aktif. Silakan pilih <strong>Program Studi</strong> atau klaim <strong>Voucher Diskon</strong> di halaman utama.</p>
+                            <button onclick="window.location.href='index.html#hero-signup-form'" class="btn btn-primary" style="width:100%; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">Ambil Voucher Diskon</button>
+                         </div>
+                     `;
                 }
             } catch (err) {
                 console.error(err);
@@ -879,6 +931,141 @@
                 target.classList.add('active');
                 if (typeof feather !== 'undefined') feather.replace();
             }
+        }
+    </script>
+    <!-- Drag & Drop Logic -->
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-upload');
+        const previewImg = document.getElementById('avatar-preview');
+        const hiddenInput = document.getElementById('edit-avatar-input');
+        const dropContent = document.getElementById('drop-zone-content');
+        const removeBtn = document.getElementById('remove-preview');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop zone when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.style.borderColor = 'var(--color-primary)';
+            dropZone.style.background = '#e0f2fe'; // Light Blue
+        }
+
+        function unhighlight(e) {
+            dropZone.style.borderColor = '#cbd5e1';
+            dropZone.style.background = '#f8fafc';
+        }
+
+        // Handle Dropped Files
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(input) {
+            const files = input.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+
+                // Validate Image
+                if (!file.type.startsWith('image/')) {
+                    showToast('Harap upload file gambar (JPG/PNG).', 'error');
+                    return;
+                }
+
+                // Validate Size (Max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('Ukuran file terlalu besar (Maks 2MB).', 'error');
+                    return;
+                }
+
+                previewFile(file);
+            }
+        }
+
+        function previewFile(file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = function () {
+                // Resize logic using Canvas
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 150;
+                    const MAX_HEIGHT = 150;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG with 0.8 quality
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    // Show Preview
+                    previewImg.src = dataUrl;
+                    previewImg.style.display = 'block';
+                    removeBtn.style.display = 'block';
+
+                    // Hide Default Content
+                    dropContent.style.display = 'none';
+
+                    // Set Hidden Input Value to Resized Base64
+                    hiddenInput.value = dataUrl;
+                }
+            }
+        }
+
+        function removePreview(e) {
+            if (e) e.stopPropagation(); // Prevent clicking dropzone behind it
+
+            // Reset UI
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+            removeBtn.style.display = 'none';
+            dropContent.style.display = 'block';
+
+            // Reset Values
+            hiddenInput.value = '';
+            fileInput.value = '';
         }
     </script>
 </body>
