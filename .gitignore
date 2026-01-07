@@ -4,6 +4,7 @@ client_secret*.json
 *.env
 .env
 api_keys.js
+config.js
 
 # Dependencies
 node_modules/
