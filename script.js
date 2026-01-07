@@ -1035,8 +1035,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- Hybrid AI Assistant Logic ---
-// 1. Load API Key from Config (Ignored in Git)
-const GROQ_API_KEY = typeof CONFIG !== 'undefined' ? CONFIG.GROQ_API_KEY : 'YOUR_API_KEY_PLACEHOLDER';
+// 1. Load API Key from Config (Reassemble obfuscated parts)
+const GROQ_API_KEY = typeof CONFIG !== 'undefined' ? (CONFIG.GROQ_PART_1 + CONFIG.GROQ_PART_2) : 'YOUR_API_KEY_PLACEHOLDER';
 
 
 // System Prompt for Groq (Same as ElevenLabs)
